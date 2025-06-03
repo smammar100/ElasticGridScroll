@@ -190,13 +190,13 @@ a {
   }
 
   @media screen and (min-width: 53em) {
-    grid-template-columns: auto auto auto auto 1fr;
+    grid-template-columns: auto auto auto auto auto 1fr;
     grid-template-rows: auto auto auto;
     grid-column-gap: 2rem;
     grid-template-areas:
-      'title back github archive tags'
-      'demos demos demos sponsor sponsor'
-      'info info info ... ...';
+      'title back github archive tags sponsor'
+      'demos demos demos ... ... sponsor'
+      'info info info ... ... sponsor';
 
     #cdawrap {
       justify-self: end;
