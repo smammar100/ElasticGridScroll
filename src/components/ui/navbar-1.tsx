@@ -25,22 +25,7 @@ const Navbar1 = () => {
           </motion.div>
         </div>
         
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-8">
-          {["Home", "Pricing", "Docs", "Projects"].map((item) => (
-            <motion.div
-              key={item}
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-              whileHover={{ scale: 1.05 }}
-            >
-              <a href="#" className="text-sm text-gray-900 hover:text-gray-600 transition-colors font-medium">
-                {item}
-              </a>
-            </motion.div>
-          ))}
-        </nav>
+     
 
         {/* Desktop CTA Button */}
         <motion.div
