@@ -117,3 +117,5 @@ function Grid() {
     </div>
   );
 }
+
+export { Grid }
