@@ -27,16 +27,10 @@ body {
 }
 
 .demo-3 {
-  --color-text: #ffffff;
-  --color-bg: #5e5d59;
+  --color-text: #000000;
+  --color-bg: #ffffff;
   --color-link: #040404;
   --color-link-hover: #d63937;
-}
-
-.demo-4 {
-  --color-text: #ffffff;
-  --color-link: #fece5c;
-  --color-link-hover: #ffffff;
 }
 
 @media (scripting: enabled) {
