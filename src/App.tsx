@@ -1,8 +1,13 @@
-import { DemoOne } from '@/components/demo'
+import { Hero } from "@/components/ui/animated-hero"
 
 function App() {
   return (
-    <DemoOne />
+    <div className="min-h-screen bg-white">
+      <Hero />
+      <div className="grid">
+        {/* Existing grid content */}
+      </div>
+    </div>
   )
 }
 
