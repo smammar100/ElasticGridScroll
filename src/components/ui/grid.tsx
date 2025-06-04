@@ -99,7 +99,7 @@ function Grid() {
   }, []);
 
   return (
-    <div ref={gridRef} className="grid">
+    <div ref={gridRef} className="grid demo-3">
       {[...Array(20)].map((_, i) => (
         <figure key={i} className="grid__item">
           <div 
@@ -117,5 +117,3 @@ function Grid() {
     </div>
   );
 }
-
-export { Grid };

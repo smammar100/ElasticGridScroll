@@ -1,9 +1,3 @@
-*,
-*::after,
-*::before {
-  box-sizing: border-box;
-}
-
 :root {
   font-size: 14px;
   --color-text: #333;
@@ -14,7 +8,7 @@
   --c-gap: 5vw;
   --r-gap: 5vw;
   --column-size: 80px;
-  --column-count: 3;
+  --column-count: 4;
 }
 
 body {
@@ -31,6 +25,7 @@ body {
   --color-bg: #ffffff;
   --color-link: #040404;
   --color-link-hover: #d63937;
+  --c-gap: 5px;
 }
 
 @media (scripting: enabled) {
