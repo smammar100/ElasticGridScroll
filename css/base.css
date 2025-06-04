@@ -111,7 +111,7 @@ a {
 }
 
 .frame {
-  padding: 2rem var(--page-padding) 0;
+  padding: var(--page-padding);
   display: grid;
   z-index: 1000;
   position: relative;
@@ -202,13 +202,13 @@ a {
 
 .grid {
   display: grid;
-  padding: 10rem var(--page-padding);
+  padding: var(--page-padding);
   margin: 0 auto;
   grid-template-columns: repeat(var(--column-count), minmax(var(--column-size), 1fr));
   grid-column-gap: var(--c-gap);
   grid-row-gap: var(--r-gap);
   @media screen and (min-width: 65em) {
-    --column-count: 7;
+    --column-count: 5;
   }
 }
 
@@ -236,18 +236,6 @@ a {
 
 /* Demo variations */
 
-.demo-2 .grid__item {
-  transform: scaleX(var(--si, 1)) scaleY(var(--sy, 1));
-  transform-origin: var(--to, 50% 50%);
-  will-change: transform;
-}
-
-.demo-2 .grid {
-  @media screen and (min-width: 65em) {
-    --column-count: 7;
-  }
-}
-
 .demo-3 {
   --c-gap: 5px;
 }
@@ -256,36 +244,4 @@ a {
   @media screen and (min-width: 65em) {
     --column-count: 5;
   }
-}
-
-.demo-4 {
-  --c-gap: 0vw;
-}
-
-.demo-4 .grid__item-caption {
-  display: none;
-}
-
-.demo-4 .grid {
-  padding: 0;
-  @media screen and (min-width: 65em) {
-    --column-count: 9;
-    --page-padding: 0;
-  }
-}
-
-.demo-4 .frame {
-  position: fixed;
-  width: 100%;
-  top: 0;
-  left: 0;
-  align-content: start;
-  height: 100vh;
-  background: linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0.85) 0rem,
-    rgba(0, 0, 0, 0) 20rem,
-    rgba(0, 0, 0, 0) calc(100% - 20rem),
-    rgba(0, 0, 0, 0.85) 100%
-  );
 }
