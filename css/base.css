@@ -10,7 +10,7 @@
   --color-bg: #fff;
   --color-link: #929292;
   --color-link-hover: #000;
-  --page-padding: 5vw;
+  --page-padding: 2rem;
   --c-gap: 5vw;
   --r-gap: 5vw;
   --column-size: 80px;
@@ -111,7 +111,8 @@ a {
 }
 
 .frame {
-  padding: var(--page-padding);
+  padding: 2rem;
+  margin: 0;
   display: grid;
   z-index: 1000;
   position: relative;
@@ -202,8 +203,8 @@ a {
 
 .grid {
   display: grid;
-  padding: var(--page-padding);
-  margin: 0 auto;
+  padding: 2rem;
+  margin: 0;
   grid-template-columns: repeat(var(--column-count), minmax(var(--column-size), 1fr));
   grid-column-gap: var(--c-gap);
   grid-row-gap: var(--r-gap);
