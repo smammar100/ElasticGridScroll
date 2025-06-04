@@ -3,9 +3,13 @@ import { Grid } from "@/components/ui/grid"
 
 function App() {
   return (
-    <div className="min-h-screen bg-white">
-      <Hero />
-      <Grid />
+    <div id="smooth-wrapper">
+      <div id="smooth-content">
+        <div className="min-h-screen bg-white">
+          <Hero />
+          <Grid />
+        </div>
+      </div>
     </div>
   )
 }
