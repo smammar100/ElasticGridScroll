@@ -3,6 +3,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import * as Select from "@radix-ui/react-select";
 import { X } from "lucide-react";
+import { createPortal } from "react-dom";
 
 interface FeedbackModalProps {
   isOpen: boolean;
@@ -18,7 +19,11 @@ const roles = [
 ];
 
 const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose }) => {
-  return (
+  const modalRoot = document.getElementById('modal-root');
+
+  if (!modalRoot) return null;
+
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <Dialog.Root open={isOpen} onOpenChange={onClose}>
@@ -126,7 +131,8 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose }) => {
           </Dialog.Portal>
         </Dialog.Root>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    modalRoot
   );
 };
 
