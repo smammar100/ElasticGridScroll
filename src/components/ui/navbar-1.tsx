@@ -4,15 +4,17 @@ import * as React from "react"
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Menu, X } from "lucide-react"
+import { FeedbackModal } from "./feedback-modal"
 
 const Navbar1 = () => {
   const [isOpen, setIsOpen] = useState(false)
+  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false)
 
   const toggleMenu = () => setIsOpen(!isOpen)
 
   return (
-    <div className="flex justify-center w-full py-6 px-4">
-      <div className="flex items-center justify-between px-6 py-3 bg-white rounded-full shadow-lg w-full max-w-3xl relative z-10">
+    <div className="flex justify-center w-full py-4 px-4 fixed top-0 left-0 z-50 backdrop-blur-sm bg-white/80">
+      <div className="flex items-center justify-between px-6 py-2 bg-white/50 rounded-full shadow-lg w-full max-w-3xl relative">
         <div className="flex items-center">
           <motion.div
             className="w-8 h-8 mr-6"
@@ -24,8 +26,6 @@ const Navbar1 = () => {
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#FF9966] to-[#FF5E62]" />
           </motion.div>
         </div>
-        
-     
 
         {/* Desktop CTA Button */}
         <motion.div
@@ -35,12 +35,12 @@ const Navbar1 = () => {
           transition={{ duration: 0.3, delay: 0.2 }}
           whileHover={{ scale: 1.05 }}
         >
-          <a
-            href="#"
+          <button
+            onClick={() => setIsFeedbackModalOpen(true)}
             className="inline-flex items-center justify-center px-5 py-2 text-sm text-white bg-black rounded-full hover:bg-gray-800 transition-colors"
           >
-            Try Now
-          </a>
+            Share Feedback
+          </button>
         </motion.div>
 
         {/* Mobile Menu Button */}
@@ -91,18 +91,25 @@ const Navbar1 = () => {
                 exit={{ opacity: 0, y: 20 }}
                 className="pt-6"
               >
-                <a
-                  href="#"
+                <button
+                  onClick={() => {
+                    toggleMenu();
+                    setIsFeedbackModalOpen(true);
+                  }}
                   className="inline-flex items-center justify-center w-full px-5 py-3 text-base text-white bg-black rounded-full hover:bg-gray-800 transition-colors"
-                  onClick={toggleMenu}
                 >
-                  Try Now
-                </a>
+                  Share Feedback
+                </button>
               </motion.div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
+
+      <FeedbackModal 
+        isOpen={isFeedbackModalOpen}
+        onClose={() => setIsFeedbackModalOpen(false)}
+      />
     </div>
   )
 }
