@@ -97,6 +97,54 @@ function Grid() {
     }
   };
 
+  // Function to download image
+  const downloadImage = async (imageUrl: string, brandName: string) => {
+    try {
+      // Show loading state
+      const button = document.activeElement as HTMLButtonElement;
+      if (button) {
+        button.disabled = true;
+        button.innerHTML = '<div class="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin"></div>';
+      }
+
+      // Fetch the image
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${brandName.toLowerCase()}-brand-image.jpg`;
+      
+      // Trigger download
+      document.body.appendChild(link);
+      link.click();
+      
+      // Cleanup
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      // Reset button
+      if (button) {
+        button.disabled = false;
+        button.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>';
+      }
+    } catch (error) {
+      console.error('Download failed:', error);
+      
+      // Reset button on error
+      const button = document.activeElement as HTMLButtonElement;
+      if (button) {
+        button.disabled = false;
+        button.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>';
+      }
+      
+      // Show error message
+      alert('Download failed. Please try again.');
+    }
+  };
+
   useEffect(() => {
     if (!gridRef.current) return;
     originalItemsRef.current = Array.from(gridRef.current.querySelectorAll('.grid__item'));
@@ -125,53 +173,58 @@ function Grid() {
 
   return (
     <div ref={gridRef} className="grid demo-3">
-      {brandData.map((brand, i) => (
-        <figure key={i} className="grid__item group cursor-pointer">
-          <div 
-            className="grid__item-img relative overflow-hidden rounded-lg shadow-md hover:shadow-lg transition-all duration-300" 
-            style={{
-              backgroundImage: `url(https://images.pexels.com/photos/${18111088 + i}/pexels-photo-${18111088 + i}.jpeg)`,
-              aspectRatio: '1/1',
-              backgroundSize: 'cover',
-              backgroundPosition: 'center'
-            }}
-          >
-            {/* Brand Logo - Top Left */}
-            <div className="absolute top-3 left-3 z-10">
-              <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${brand.color} flex items-center justify-center shadow-lg`}>
-                <span className="text-white font-bold text-lg">{brand.logo}</span>
+      {brandData.map((brand, i) => {
+        const imageUrl = `https://images.pexels.com/photos/${18111088 + i}/pexels-photo-${18111088 + i}.jpeg`;
+        
+        return (
+          <figure key={i} className="grid__item group cursor-pointer">
+            <div 
+              className="grid__item-img relative overflow-hidden rounded-lg shadow-md hover:shadow-lg transition-all duration-300" 
+              style={{
+                backgroundImage: `url(${imageUrl})`,
+                aspectRatio: '1/1',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center'
+              }}
+            >
+              {/* Brand Logo - Top Left */}
+              <div className="absolute top-3 left-3 z-10">
+                <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${brand.color} flex items-center justify-center shadow-lg`}>
+                  <span className="text-white font-bold text-lg">{brand.logo}</span>
+                </div>
               </div>
-            </div>
 
-            {/* Brand Name - Below Logo */}
-            <div className="absolute top-16 left-3 z-10">
-              <h3 className="text-white font-semibold text-sm bg-black/50 px-2 py-1 rounded backdrop-blur-sm">
-                {brand.name}
-              </h3>
-            </div>
+              {/* Brand Name - Below Logo */}
+              <div className="absolute top-16 left-3 z-10">
+                <h3 className="text-white font-semibold text-sm bg-black/50 px-2 py-1 rounded backdrop-blur-sm">
+                  {brand.name}
+                </h3>
+              </div>
 
-            {/* Download Button - Bottom Right */}
-            <div className="absolute bottom-3 right-3 z-10">
-              <button 
-                className="w-10 h-10 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-110 group-hover:bg-black group-hover:text-white"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  console.log(`Downloading ${brand.name} brand assets`);
-                }}
-              >
-                <Download size={16} className="text-gray-700 group-hover:text-white" />
-              </button>
-            </div>
+              {/* Download Button - Bottom Right */}
+              <div className="absolute bottom-3 right-3 z-10">
+                <button 
+                  className="w-10 h-10 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-110 group-hover:bg-black group-hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    downloadImage(imageUrl, brand.name);
+                  }}
+                  title={`Download ${brand.name} image`}
+                >
+                  <Download size={16} className="text-gray-700 group-hover:text-white" />
+                </button>
+              </div>
 
-            {/* Overlay for better text readability */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/20 rounded-lg"></div>
-          </div>
-          
-          <figcaption className="grid__item-caption text-center mt-2 text-gray-600">
-            {brand.name} Collection
-          </figcaption>
-        </figure>
-      ))}
+              {/* Overlay for better text readability */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/20 rounded-lg"></div>
+            </div>
+            
+            <figcaption className="grid__item-caption text-center mt-2 text-gray-600">
+              {brand.name} Collection
+            </figcaption>
+          </figure>
+        );
+      })}
     </div>
   );
 }
