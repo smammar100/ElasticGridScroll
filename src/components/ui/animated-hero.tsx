@@ -25,7 +25,7 @@ function Hero() {
   return (
     <div className="w-full px-4 sm:px-6 md:px-8">
       <div className="container mx-auto max-w-7xl">
-        <div className="flex gap-6 sm:gap-8 py-8 sm:py-12 md:py-16 lg:py-20 xl:py-24 items-center justify-center flex-col">
+        <div className="flex gap-6 sm:gap-8 py-4 sm:py-6 md:py-8 lg:py-10 xl:py-12 items-center justify-center flex-col">
           <AnimatedShinyTextDemo />
           
           <div className="flex gap-4 sm:gap-6 flex-col items-center">
