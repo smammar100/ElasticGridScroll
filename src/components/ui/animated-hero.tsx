@@ -64,25 +64,7 @@ function Hero() {
               ever.
             </p>
 
-            {/* CTA Buttons - Responsive layout */}
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-4 sm:mt-6 w-full sm:w-auto">
-              <Button 
-                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg min-h-[48px] touch-manipulation"
-                size="lg"
-              >
-                Get Started
-                <MoveRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg min-h-[48px] touch-manipulation"
-                size="lg"
-              >
-                <PhoneCall className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                Contact Us
-              </Button>
-            </div>
+      
           </div>
         </div>
       </div>
