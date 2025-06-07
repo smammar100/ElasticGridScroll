@@ -4,10 +4,77 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Base responsive typography */
+html {
+  font-size: 16px; /* Minimum readable font size */
+  line-height: 1.5;
+}
+
+/* Prevent horizontal scrolling */
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+/* Responsive grid system */
+.grid {
+  display: grid;
+  padding: 1rem;
+  margin: 0;
+  gap: 1rem;
+  /* Mobile-first grid columns */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* Tablet breakpoint */
+@media (min-width: 481px) {
+  .grid {
+    padding: 1.5rem;
+    gap: 1.25rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* Desktop breakpoint */
+@media (min-width: 769px) {
+  .grid {
+    padding: 2rem;
+    gap: 1.5rem;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* Large screens breakpoint */
+@media (min-width: 1025px) {
+  .grid {
+    padding: 2.5rem;
+    gap: 2rem;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
 .grid__column {
   display: flex;
   flex-direction: column;
-  gap: var(--c-gap);
+  gap: 1rem;
+}
+
+@media (min-width: 481px) {
+  .grid__column {
+    gap: 1.25rem;
+  }
+}
+
+@media (min-width: 769px) {
+  .grid__column {
+    gap: 1.5rem;
+  }
+}
+
+@media (min-width: 1025px) {
+  .grid__column {
+    gap: 2rem;
+  }
 }
 
 .grid__item {
@@ -20,9 +87,139 @@
   height: 100%;
   background-size: cover;
   background-position: center;
+  min-height: 200px;
 }
 
-.grid__item-caption {
-  font-size: 0.8rem;
-  margin-top: 0.5rem;
+/* Responsive image sizing */
+@media (min-width: 481px) {
+  .grid__item-img {
+    min-height: 220px;
+  }
+}
+
+@media (min-width: 769px) {
+  .grid__item-img {
+    min-height: 240px;
+  }
+}
+
+@media (min-width: 1025px) {
+  .grid__item-img {
+    min-height: 260px;
+  }
+}
+
+/* Touch-friendly interactions */
+@media (hover: none) and (pointer: coarse) {
+  .hover\:scale-105:hover {
+    transform: none;
+  }
+  
+  .hover\:shadow-xl:hover {
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  }
+}
+
+/* Ensure touch targets are accessible */
+button, a, [role="button"] {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Responsive container */
+.container {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (min-width: 481px) {
+  .container {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+@media (min-width: 769px) {
+  .container {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+@media (min-width: 1025px) {
+  .container {
+    max-width: 1200px;
+    padding-left: 2.5rem;
+    padding-right: 2.5rem;
+  }
+}
+
+@media (min-width: 1400px) {
+  .container {
+    max-width: 1400px;
+  }
+}
+
+/* Performance optimizations */
+.grid__item-img {
+  will-change: transform;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+/* Smooth scrolling for better UX */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Focus styles for accessibility */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .bg-white\/50 {
+    background-color: rgba(255, 255, 255, 0.9);
+  }
+  
+  .bg-black\/50 {
+    background-color: rgba(0, 0, 0, 0.9);
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Print styles */
+@media print {
+  .grid {
+    display: block !important;
+  }
+  
+  .grid__item {
+    break-inside: avoid;
+    margin-bottom: 1rem;
+  }
+  
+  button {
+    display: none !important;
+  }
 }

@@ -4,8 +4,8 @@ import { Grid } from "@/components/ui/grid"
 
 function App() {
   return (
-    <div id="smooth-wrapper">
-      <div id="smooth-content">
+    <div id="smooth-wrapper" className="min-h-screen">
+      <div id="smooth-content" className="w-full">
         <div className="min-h-screen bg-white">
           <Navbar1 />
           <Hero />

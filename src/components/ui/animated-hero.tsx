@@ -23,13 +23,14 @@ function Hero() {
   }, [titleNumber, titles]);
 
   return (
-    <div className="w-full">
-      <div className="container mx-auto">
-        <div className="flex gap-8 py-10 lg:py-20 items-center justify-center flex-col">
+    <div className="w-full px-4 sm:px-6 md:px-8">
+      <div className="container mx-auto max-w-7xl">
+        <div className="flex gap-6 sm:gap-8 py-8 sm:py-12 md:py-16 lg:py-20 xl:py-24 items-center justify-center flex-col">
           <AnimatedShinyTextDemo />
-          <div className="flex gap-4 flex-col">
-            <h1 className="text-5xl md:text-7xl max-w-2xl tracking-tighter text-center font-regular">
-              <span className="text-spektr-cyan-50">This is something</span>
+          
+          <div className="flex gap-4 sm:gap-6 flex-col items-center">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl max-w-xs sm:max-w-md md:max-w-2xl lg:max-w-4xl tracking-tighter text-center font-regular leading-tight">
+              <span className="text-spektr-cyan-50 block sm:inline">This is something</span>
               <span className="relative flex w-full justify-center overflow-hidden text-center md:pb-4 md:pt-1">
                 &nbsp;
                 {titles.map((title, index) => (
@@ -56,12 +57,32 @@ function Hero() {
               </span>
             </h1>
 
-            <p className="text-lg md:text-xl leading-relaxed tracking-tight text-muted-foreground max-w-2xl text-center">
+            <p className="text-base sm:text-lg md:text-xl lg:text-2xl leading-relaxed tracking-tight text-muted-foreground max-w-xs sm:max-w-md md:max-w-2xl lg:max-w-3xl text-center px-2 sm:px-4">
               Managing a small business today is already tough. Avoid further
               complications by ditching outdated, tedious trade methods. Our
               goal is to streamline SMB trade, making it easier and faster than
               ever.
             </p>
+
+            {/* CTA Buttons - Responsive layout */}
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-4 sm:mt-6 w-full sm:w-auto">
+              <Button 
+                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg min-h-[48px] touch-manipulation"
+                size="lg"
+              >
+                Get Started
+                <MoveRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg min-h-[48px] touch-manipulation"
+                size="lg"
+              >
+                <PhoneCall className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                Contact Us
+              </Button>
+            </div>
           </div>
         </div>
       </div>

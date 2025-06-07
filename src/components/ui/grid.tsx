@@ -104,7 +104,7 @@ function Grid() {
       const button = document.activeElement as HTMLButtonElement;
       if (button) {
         button.disabled = true;
-        button.innerHTML = '<div class="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin"></div>';
+        button.innerHTML = '<div class="w-3 h-3 sm:w-4 sm:h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin"></div>';
       }
 
       // Fetch the image
@@ -128,7 +128,7 @@ function Grid() {
       // Reset button
       if (button) {
         button.disabled = false;
-        button.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>';
+        button.innerHTML = '<svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>';
       }
     } catch (error) {
       console.error('Download failed:', error);
@@ -137,7 +137,7 @@ function Grid() {
       const button = document.activeElement as HTMLButtonElement;
       if (button) {
         button.disabled = false;
-        button.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>';
+        button.innerHTML = '<svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>';
       }
       
       // Show error message
@@ -172,14 +172,17 @@ function Grid() {
   }, []);
 
   return (
-    <div ref={gridRef} className="grid demo-3">
+    <div 
+      ref={gridRef} 
+      className="grid demo-3 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 sm:py-12 md:py-16"
+    >
       {brandData.map((brand, i) => {
         const imageUrl = `https://images.pexels.com/photos/${18111088 + i}/pexels-photo-${18111088 + i}.jpeg`;
         
         return (
           <figure key={i} className="grid__item group cursor-pointer">
             <div 
-              className="grid__item-img relative overflow-hidden rounded-lg shadow-md hover:shadow-lg transition-all duration-300" 
+              className="grid__item-img relative overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-105" 
               style={{
                 backgroundImage: `url(${imageUrl})`,
                 aspectRatio: '1/1',
@@ -187,31 +190,32 @@ function Grid() {
                 backgroundPosition: 'center'
               }}
             >
-              {/* Brand Logo - Top Left */}
-              <div className="absolute top-3 left-3 z-10">
-                <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${brand.color} flex items-center justify-center shadow-lg`}>
-                  <span className="text-white font-bold text-lg">{brand.logo}</span>
+              {/* Brand Logo - Top Left - Responsive sizing */}
+              <div className="absolute top-2 left-2 sm:top-3 sm:left-3 z-10">
+                <div className={`w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-br ${brand.color} flex items-center justify-center shadow-lg`}>
+                  <span className="text-white font-bold text-sm sm:text-lg md:text-xl">{brand.logo}</span>
                 </div>
               </div>
 
-              {/* Brand Name - Below Logo */}
-              <div className="absolute top-16 left-3 z-10">
-                <h3 className="text-white font-semibold text-sm bg-black/50 px-2 py-1 rounded backdrop-blur-sm">
+              {/* Brand Name - Below Logo - Responsive sizing */}
+              <div className="absolute top-12 left-2 sm:top-16 sm:left-3 md:top-18 md:left-3 z-10">
+                <h3 className="text-white font-semibold text-xs sm:text-sm md:text-base bg-black/50 px-2 py-1 rounded backdrop-blur-sm">
                   {brand.name}
                 </h3>
               </div>
 
-              {/* Download Button - Bottom Right */}
-              <div className="absolute bottom-3 right-3 z-10">
+              {/* Download Button - Bottom Right - Touch-friendly sizing */}
+              <div className="absolute bottom-2 right-2 sm:bottom-3 sm:right-3 z-10">
                 <button 
-                  className="w-10 h-10 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-110 group-hover:bg-black group-hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-11 h-11 sm:w-12 sm:h-12 md:w-14 md:h-14 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-110 group-hover:bg-black group-hover:text-white disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
                   onClick={(e) => {
                     e.stopPropagation();
                     downloadImage(imageUrl, brand.name);
                   }}
                   title={`Download ${brand.name} image`}
+                  aria-label={`Download ${brand.name} image`}
                 >
-                  <Download size={16} className="text-gray-700 group-hover:text-white" />
+                  <Download size={16} className="text-gray-700 group-hover:text-white w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
               </div>
 
