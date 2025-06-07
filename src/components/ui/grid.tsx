@@ -218,10 +218,6 @@ function Grid() {
               {/* Overlay for better text readability */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/20 rounded-lg"></div>
             </div>
-            
-            <figcaption className="grid__item-caption text-center mt-2 text-gray-600">
-              {brand.name} Collection
-            </figcaption>
           </figure>
         );
       })}
