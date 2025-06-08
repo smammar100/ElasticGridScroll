@@ -1,6 +1,7 @@
 import { Navbar1 } from "@/components/ui/navbar-1"
 import { Hero } from "@/components/ui/animated-hero"
 import { Grid } from "@/components/ui/grid"
+import { SubscriptionPage } from "@/components/ui/subscription-page"
 
 function App() {
   return (
@@ -11,6 +12,7 @@ function App() {
           <Hero />
           <Grid />
         </div>
+        <SubscriptionPage />
       </div>
     </div>
   )
