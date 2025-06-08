@@ -50,7 +50,7 @@ const SubscriptionPage = () => {
         {/* Subscribe Input Group */}
         <motion.form 
           onSubmit={handleSubmit}
-          className="w-full max-w-md sm:max-w-lg md:max-w-xl mb-12 sm:mb-16 md:mb-20"
+          className="w-full max-w-md sm:max-w-lg md:max-w-xl mb-8 sm:mb-10 md:mb-12"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
