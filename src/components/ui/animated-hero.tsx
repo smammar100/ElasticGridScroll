@@ -57,12 +57,7 @@ function Hero() {
               </span>
             </h1>
 
-            <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl leading-relaxed tracking-tight text-text-secondary max-w-xs sm:max-w-md md:max-w-2xl lg:max-w-4xl text-center px-2 sm:px-4 font-normal">
-              Managing a small business today is already tough. Avoid further
-              complications by ditching outdated, tedious trade methods. Our
-              goal is to streamline SMB trade, making it easier and faster than
-              ever.
-            </p>
+      
           </div>
         </div>
       </div>
