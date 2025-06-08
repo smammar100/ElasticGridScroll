@@ -30,7 +30,7 @@ function Hero() {
           
           <div className="flex gap-6 sm:gap-8 flex-col items-center">
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl max-w-xs sm:max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl tracking-tight text-center font-bold leading-tight text-text-primary">
-              <span className="block sm:inline">This is something</span>
+              <span className="block sm:inline">The internet’s best, filtered by</span>
               <span className="relative flex w-full justify-center overflow-hidden text-center md:pb-4 md:pt-1">
                 &nbsp;
                 {titles.map((title, index) => (
