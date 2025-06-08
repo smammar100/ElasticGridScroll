@@ -25,11 +25,11 @@ const SubscriptionPage = () => {
   return (
     <div className="bg-white flex flex-col justify-between">
       {/* Content Section */}
-      <div className="flex-1 flex flex-col justify-center items-center px-4 sm:px-6 md:px-8 py-8 sm:py-12 md:py-16">
+      <div className="flex-1 flex flex-col justify-center items-center px-4 sm:px-6 md:px-8 py-4 sm:py-6 md:py-8">
         {/* Header Text Group */}
-        <div className="text-center max-w-2xl sm:max-w-3xl md:max-w-4xl mb-6 sm:mb-8 md:mb-10">
+        <div className="text-center max-w-2xl sm:max-w-3xl md:max-w-4xl mb-4 sm:mb-6 md:mb-8">
           <motion.h1 
-            className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-text-primary leading-tight mb-4 sm:mb-6"
+            className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-text-primary leading-tight mb-3 sm:mb-4 md:mb-5"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
@@ -50,7 +50,7 @@ const SubscriptionPage = () => {
         {/* Subscribe Input Group */}
         <motion.form 
           onSubmit={handleSubmit}
-          className="w-full max-w-md sm:max-w-lg md:max-w-xl mb-8 sm:mb-10 md:mb-12"
+          className="w-full max-w-md sm:max-w-lg md:max-w-xl mb-4 sm:mb-6 md:mb-8"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
