@@ -74,8 +74,8 @@ const SubscriptionPage = () => {
         </motion.form>
       </div>
 
-      {/* Image Stack Group */}
-      <div className="relative w-full min-h-[24rem] overflow-hidden flex justify-center items-end">
+      {/* Image Stack Group - Updated with 2rem margins and 50% wider images */}
+      <div className="relative w-full min-h-[24rem] overflow-hidden flex justify-center items-end mx-8">
         {stackImages.map((imageUrl, index) => {
           // Calculate height and z-index for step effect
           const heights = ['h-48', 'h-64', 'h-80', 'h-96', 'h-80', 'h-64', 'h-48'];
@@ -84,7 +84,7 @@ const SubscriptionPage = () => {
           return (
             <motion.div
               key={index}
-              className={`image-stack-item-${index + 1} absolute bottom-0 ${heights[index]} ${zIndexes[index]} w-[120px] sm:w-[160px] md:w-[200px] rounded-t-xl overflow-hidden shadow-lg`}
+              className={`image-stack-item-${index + 1} absolute bottom-0 ${heights[index]} ${zIndexes[index]} w-[180px] sm:w-[240px] md:w-[300px] rounded-t-xl overflow-hidden shadow-lg`}
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.3 + index * 0.1 }}
