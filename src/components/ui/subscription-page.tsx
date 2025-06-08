@@ -75,7 +75,7 @@ const SubscriptionPage = () => {
       </div>
 
       {/* Image Stack Group */}
-      <div className="relative w-full h-[40vh] sm:h-[50vh] md:h-[60vh] overflow-hidden flex justify-center items-end">
+      <div className="relative w-full min-h-[24rem] overflow-hidden flex justify-center items-end">
         {stackImages.map((imageUrl, index) => {
           // Calculate height and z-index for step effect
           const heights = ['h-48', 'h-64', 'h-80', 'h-96', 'h-80', 'h-64', 'h-48'];
