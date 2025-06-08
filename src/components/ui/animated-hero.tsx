@@ -7,7 +7,7 @@ import { AnimatedShinyTextDemo } from "@/components/ui/animated-shiny-text-demo"
 function Hero() {
   const [titleNumber, setTitleNumber] = useState(0);
   const titles = useMemo(
-    () => ["amazing", "new", "wonderful", "beautiful", "smart"],
+    () => ["what works", "what wins", "what wows"],
     []
   );
 
