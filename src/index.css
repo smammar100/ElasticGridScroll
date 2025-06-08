@@ -183,13 +183,13 @@ html, body {
   }
 }
 
-/* Image Stack Positioning - Updated for 5 images with 75% wider images (50% increase from previous) */
+/* Image Stack Positioning - Centrally aligned with calc(50% - offset) */
 .image-stack-item-1 {
-  left: calc(50% - 450px);
+  left: calc(50% - 337.5px);
 }
 
 .image-stack-item-2 {
-  left: calc(50% - 225px);
+  left: calc(50% - 202.5px);
 }
 
 .image-stack-item-3 {
@@ -197,17 +197,17 @@ html, body {
 }
 
 .image-stack-item-4 {
-  left: calc(50% + 90px);
+  left: calc(50% - 67.5px);
 }
 
 .image-stack-item-5 {
-  left: calc(50% + 315px);
+  left: calc(50% + 67.5px);
 }
 
 /* Responsive positioning for smaller screens */
 @media (min-width: 481px) {
   .image-stack-item-1 {
-    left: calc(50% - 585px);
+    left: calc(50% - 450px);
   }
 
   .image-stack-item-2 {
@@ -219,22 +219,22 @@ html, body {
   }
 
   .image-stack-item-4 {
-    left: calc(50% + 90px);
+    left: calc(50% - 90px);
   }
 
   .image-stack-item-5 {
-    left: calc(50% + 360px);
+    left: calc(50% + 90px);
   }
 }
 
 /* Responsive positioning for medium screens */
 @media (min-width: 769px) {
   .image-stack-item-1 {
-    left: calc(50% - 731px);
+    left: calc(50% - 562.5px);
   }
 
   .image-stack-item-2 {
-    left: calc(50% - 338px);
+    left: calc(50% - 337.5px);
   }
 
   .image-stack-item-3 {
@@ -242,11 +242,11 @@ html, body {
   }
 
   .image-stack-item-4 {
-    left: calc(50% + 113px);
+    left: calc(50% - 112.5px);
   }
 
   .image-stack-item-5 {
-    left: calc(50% + 450px);
+    left: calc(50% + 112.5px);
   }
 }
 

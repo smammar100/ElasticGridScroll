@@ -72,8 +72,8 @@ const SubscriptionPage = () => {
         </motion.form>
       </div>
 
-      {/* Image Stack Group - Updated with 5 images, 2rem margins and 75% wider images (50% increase from previous 50% increase) */}
-      <div className="relative w-full min-h-[24rem] overflow-hidden flex justify-center items-end mx-8">
+      {/* Image Stack Group - Centrally aligned with proper positioning */}
+      <div className="relative w-full min-h-[24rem] overflow-hidden flex justify-center items-end">
         {stackImages.map((imageUrl, index) => {
           // Calculate height and z-index for step effect (adjusted for 5 images)
           const heights = ['h-48', 'h-64', 'h-80', 'h-64', 'h-48'];
