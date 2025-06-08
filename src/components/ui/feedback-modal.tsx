@@ -40,16 +40,16 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose }) => {
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
-                    className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl rounded-lg bg-white p-4 sm:p-6 md:p-8 shadow-lg relative mx-auto max-h-[90vh] overflow-y-auto"
+                    className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl rounded-xl bg-white p-6 sm:p-8 md:p-10 shadow-xl relative mx-auto max-h-[90vh] overflow-y-auto border border-gray-100"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <div className="flex justify-between items-center mb-4 sm:mb-6">
-                      <Dialog.Title className="text-lg sm:text-xl md:text-2xl font-semibold pr-4">
+                    <div className="flex justify-between items-center mb-6 sm:mb-8">
+                      <Dialog.Title className="text-xl sm:text-2xl md:text-3xl font-semibold pr-4 text-text-primary">
                         We'd love your feedback!
                       </Dialog.Title>
                       <Dialog.Close asChild>
                         <button 
-                          className="text-gray-400 hover:text-gray-600 w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors touch-manipulation"
+                          className="text-text-tertiary hover:text-text-secondary w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-full hover:bg-gray-50 transition-colors touch-manipulation"
                           aria-label="Close modal"
                         >
                           <X size={20} className="sm:w-6 sm:h-6" />
@@ -57,24 +57,24 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose }) => {
                       </Dialog.Close>
                     </div>
 
-                    <form className="space-y-4 sm:space-y-6">
+                    <form className="space-y-6 sm:space-y-8">
                       <div>
-                        <label className="block text-sm sm:text-base font-medium mb-2">
+                        <label className="block text-base sm:text-lg font-medium mb-3 text-text-primary">
                           What best describes your role?
                         </label>
                         <Select.Root>
-                          <Select.Trigger className="w-full px-3 sm:px-4 py-3 sm:py-4 border rounded-md text-sm sm:text-base min-h-[48px] flex items-center justify-between touch-manipulation">
+                          <Select.Trigger className="w-full px-4 sm:px-5 py-4 sm:py-5 border border-gray-200 rounded-xl text-base sm:text-lg min-h-[52px] flex items-center justify-between touch-manipulation hover:border-gray-300 transition-colors font-normal text-text-primary">
                             <Select.Value placeholder="Select your role" />
-                            <ChevronDown className="h-4 w-4 opacity-50" />
+                            <ChevronDown className="h-5 w-5 opacity-50" />
                           </Select.Trigger>
                           <Select.Portal>
-                            <Select.Content className="bg-white rounded-md shadow-lg border z-[10000] max-h-60 overflow-y-auto">
+                            <Select.Content className="bg-white rounded-xl shadow-xl border border-gray-100 z-[10000] max-h-60 overflow-y-auto">
                               <Select.Viewport>
                                 {roles.map((role) => (
                                   <Select.Item
                                     key={role}
                                     value={role}
-                                    className="px-3 sm:px-4 py-3 sm:py-4 hover:bg-gray-100 cursor-pointer text-sm sm:text-base touch-manipulation"
+                                    className="px-4 sm:px-5 py-4 sm:py-5 hover:bg-gray-50 cursor-pointer text-base sm:text-lg touch-manipulation text-text-primary font-normal"
                                   >
                                     <Select.ItemText>{role}</Select.ItemText>
                                   </Select.Item>
@@ -86,36 +86,36 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose }) => {
                       </div>
 
                       <div>
-                        <label className="block text-sm sm:text-base font-medium mb-2">
+                        <label className="block text-base sm:text-lg font-medium mb-3 text-text-primary">
                           What's one thing you wish Curatit did better?
                         </label>
                         <textarea
-                          className="w-full px-3 sm:px-4 py-3 sm:py-4 border rounded-md h-20 sm:h-24 md:h-28 resize-none text-sm sm:text-base touch-manipulation"
+                          className="w-full px-4 sm:px-5 py-4 sm:py-5 border border-gray-200 rounded-xl h-24 sm:h-28 md:h-32 resize-none text-base sm:text-lg touch-manipulation hover:border-gray-300 transition-colors font-normal text-text-primary"
                           placeholder="Share your thoughts..."
                         />
                       </div>
 
                       <div>
-                        <label className="block text-sm sm:text-base font-medium mb-2">
+                        <label className="block text-base sm:text-lg font-medium mb-3 text-text-primary">
                           Suggest a brand you'd like to see posts from:
                         </label>
                         <input
                           type="text"
-                          className="w-full px-3 sm:px-4 py-3 sm:py-4 border rounded-md text-sm sm:text-base min-h-[48px] touch-manipulation"
+                          className="w-full px-4 sm:px-5 py-4 sm:py-5 border border-gray-200 rounded-xl text-base sm:text-lg min-h-[52px] touch-manipulation hover:border-gray-300 transition-colors font-normal text-text-primary"
                           placeholder="e.g., Notion, Figma, Liquid Death, Monzo, Glossier"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-sm sm:text-base font-medium mb-2">
+                        <label className="block text-base sm:text-lg font-medium mb-3 text-text-primary">
                           How would you rate your experience so far?
                         </label>
-                        <RadioGroup.Root className="flex gap-2 sm:gap-4 flex-wrap">
+                        <RadioGroup.Root className="flex gap-3 sm:gap-4 flex-wrap">
                           {[1, 2, 3, 4, 5].map((value) => (
                             <RadioGroup.Item
                               key={value}
                               value={value.toString()}
-                              className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full border-2 flex items-center justify-center hover:bg-gray-100 transition-colors text-sm sm:text-base font-medium touch-manipulation data-[state=checked]:bg-black data-[state=checked]:text-white data-[state=checked]:border-black"
+                              className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full border-2 border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors text-base sm:text-lg font-medium touch-manipulation data-[state=checked]:bg-text-primary data-[state=checked]:text-white data-[state=checked]:border-text-primary"
                             >
                               {value}
                             </RadioGroup.Item>
@@ -125,7 +125,7 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose }) => {
 
                       <button
                         type="submit"
-                        className="w-full bg-black text-white rounded-full py-3 sm:py-4 text-sm sm:text-base font-medium hover:bg-gray-800 transition-colors min-h-[48px] touch-manipulation"
+                        className="w-full bg-text-primary text-white rounded-full py-4 sm:py-5 text-base sm:text-lg font-medium hover:bg-gray-800 transition-colors min-h-[52px] touch-manipulation"
                       >
                         Submit Feedback
                       </button>

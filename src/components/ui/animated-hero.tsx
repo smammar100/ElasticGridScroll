@@ -25,18 +25,18 @@ function Hero() {
   return (
     <div className="w-full px-4 sm:px-6 md:px-8">
       <div className="container mx-auto max-w-7xl">
-        <div className="flex gap-6 sm:gap-8 py-4 sm:py-6 md:py-8 lg:py-10 xl:py-12 items-center justify-center flex-col">
+        <div className="flex gap-6 sm:gap-8 py-8 sm:py-12 md:py-16 lg:py-20 xl:py-24 items-center justify-center flex-col">
           <AnimatedShinyTextDemo />
           
-          <div className="flex gap-4 sm:gap-6 flex-col items-center">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl max-w-xs sm:max-w-md md:max-w-2xl lg:max-w-4xl tracking-tighter text-center font-regular leading-tight">
-              <span className="text-spektr-cyan-50 block sm:inline">This is something</span>
+          <div className="flex gap-6 sm:gap-8 flex-col items-center">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl max-w-xs sm:max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl tracking-tight text-center font-bold leading-tight text-text-primary">
+              <span className="block sm:inline">This is something</span>
               <span className="relative flex w-full justify-center overflow-hidden text-center md:pb-4 md:pt-1">
                 &nbsp;
                 {titles.map((title, index) => (
                   <motion.span
                     key={index}
-                    className="absolute font-semibold"
+                    className="absolute font-bold"
                     initial={{ opacity: 0, y: "-100" }}
                     transition={{ type: "spring", stiffness: 50 }}
                     animate={
@@ -57,14 +57,12 @@ function Hero() {
               </span>
             </h1>
 
-            <p className="text-base sm:text-lg md:text-xl lg:text-2xl leading-relaxed tracking-tight text-muted-foreground max-w-xs sm:max-w-md md:max-w-2xl lg:max-w-3xl text-center px-2 sm:px-4">
+            <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl leading-relaxed tracking-tight text-text-secondary max-w-xs sm:max-w-md md:max-w-2xl lg:max-w-4xl text-center px-2 sm:px-4 font-normal">
               Managing a small business today is already tough. Avoid further
               complications by ditching outdated, tedious trade methods. Our
               goal is to streamline SMB trade, making it easier and faster than
               ever.
             </p>
-
-      
           </div>
         </div>
       </div>

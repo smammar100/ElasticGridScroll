@@ -34,25 +34,43 @@ module.exports = {
       '2xl': '1400px',
     },
     extend: {
+      fontFamily: {
+        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'sans-serif'],
+        inter: ['Inter', 'sans-serif'],
+      },
+      fontSize: {
+        'xs': ['0.75rem', { lineHeight: '1.3', letterSpacing: '0.01em' }],
+        'sm': ['0.875rem', { lineHeight: '1.4', letterSpacing: '-0.005em' }],
+        'base': ['1rem', { lineHeight: '1.6', letterSpacing: '-0.01em' }],
+        'lg': ['1.125rem', { lineHeight: '1.5', letterSpacing: '-0.015em' }],
+        'xl': ['1.25rem', { lineHeight: '1.4', letterSpacing: '-0.02em' }],
+        '2xl': ['1.5rem', { lineHeight: '1.3', letterSpacing: '-0.025em' }],
+        '3xl': ['1.875rem', { lineHeight: '1.2', letterSpacing: '-0.025em' }],
+        '4xl': ['2.25rem', { lineHeight: '1.1', letterSpacing: '-0.03em' }],
+        '5xl': ['3rem', { lineHeight: '1', letterSpacing: '-0.03em' }],
+        '6xl': ['3.75rem', { lineHeight: '1', letterSpacing: '-0.035em' }],
+        '7xl': ['4.5rem', { lineHeight: '1', letterSpacing: '-0.035em' }],
+        '8xl': ['6rem', { lineHeight: '1', letterSpacing: '-0.04em' }],
+        '9xl': ['8rem', { lineHeight: '1', letterSpacing: '-0.04em' }],
+      },
       spacing: {
         '18': '4.5rem',
         '88': '22rem',
         '128': '32rem',
       },
-      fontSize: {
-        'xs': ['0.75rem', { lineHeight: '1rem' }],
-        'sm': ['0.875rem', { lineHeight: '1.25rem' }],
-        'base': ['1rem', { lineHeight: '1.5rem' }],
-        'lg': ['1.125rem', { lineHeight: '1.75rem' }],
-        'xl': ['1.25rem', { lineHeight: '1.75rem' }],
-        '2xl': ['1.5rem', { lineHeight: '2rem' }],
-        '3xl': ['1.875rem', { lineHeight: '2.25rem' }],
-        '4xl': ['2.25rem', { lineHeight: '2.5rem' }],
-        '5xl': ['3rem', { lineHeight: '1' }],
-        '6xl': ['3.75rem', { lineHeight: '1' }],
-        '7xl': ['4.5rem', { lineHeight: '1' }],
-        '8xl': ['6rem', { lineHeight: '1' }],
-        '9xl': ['8rem', { lineHeight: '1' }],
+      colors: {
+        'airbnb': {
+          'rausch': '#FF5A5F',
+          'babu': '#00A699',
+          'arches': '#FC642D',
+          'hof': '#484848',
+          'foggy': '#767676',
+        },
+        'text': {
+          'primary': '#222222',
+          'secondary': '#717171',
+          'tertiary': '#B0B0B0',
+        }
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",

@@ -182,7 +182,7 @@ function Grid() {
         return (
           <figure key={i} className="grid__item group cursor-pointer">
             <div 
-              className="grid__item-img relative overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-105" 
+              className="grid__item-img relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-105" 
               style={{
                 backgroundImage: `url(${imageUrl})`,
                 aspectRatio: '1/1',
@@ -191,23 +191,23 @@ function Grid() {
               }}
             >
               {/* Brand Logo - Top Left - Responsive sizing */}
-              <div className="absolute top-2 left-2 sm:top-3 sm:left-3 z-10">
-                <div className={`w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-br ${brand.color} flex items-center justify-center shadow-lg`}>
-                  <span className="text-white font-bold text-sm sm:text-lg md:text-xl">{brand.logo}</span>
+              <div className="absolute top-3 left-3 sm:top-4 sm:left-4 z-10">
+                <div className={`w-9 h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-br ${brand.color} flex items-center justify-center shadow-lg`}>
+                  <span className="text-white font-semibold text-sm sm:text-base md:text-lg">{brand.logo}</span>
                 </div>
               </div>
 
               {/* Brand Name - Below Logo - Responsive sizing */}
-              <div className="absolute top-12 left-2 sm:top-16 sm:left-3 md:top-18 md:left-3 z-10">
-                <h3 className="text-white font-semibold text-xs sm:text-sm md:text-base bg-black/50 px-2 py-1 rounded backdrop-blur-sm">
+              <div className="absolute top-14 left-3 sm:top-16 sm:left-4 md:top-18 md:left-4 z-10">
+                <h3 className="text-white font-medium text-sm sm:text-base md:text-lg bg-black/60 px-3 py-1.5 rounded-lg backdrop-blur-sm">
                   {brand.name}
                 </h3>
               </div>
 
               {/* Download Button - Bottom Right - Touch-friendly sizing */}
-              <div className="absolute bottom-2 right-2 sm:bottom-3 sm:right-3 z-10">
+              <div className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 z-10">
                 <button 
-                  className="w-11 h-11 sm:w-12 sm:h-12 md:w-14 md:h-14 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-110 group-hover:bg-black group-hover:text-white disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
+                  className="w-11 h-11 sm:w-12 sm:h-12 md:w-14 md:h-14 bg-white/95 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-110 group-hover:bg-text-primary group-hover:text-white disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
                   onClick={(e) => {
                     e.stopPropagation();
                     downloadImage(imageUrl, brand.name);
@@ -215,12 +215,12 @@ function Grid() {
                   title={`Download ${brand.name} image`}
                   aria-label={`Download ${brand.name} image`}
                 >
-                  <Download size={16} className="text-gray-700 group-hover:text-white w-4 h-4 sm:w-5 sm:h-5" />
+                  <Download size={16} className="text-text-secondary group-hover:text-white w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
               </div>
 
               {/* Overlay for better text readability */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/20 rounded-lg"></div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20 rounded-xl"></div>
             </div>
           </figure>
         );

@@ -13,17 +13,17 @@ const Navbar1 = () => {
   const toggleMenu = () => setIsOpen(!isOpen)
 
   return (
-    <div className="flex justify-center w-full py-2 sm:py-4 px-4 sm:px-6 md:px-8">
-      <div className="flex items-center justify-between px-4 sm:px-6 py-2 sm:py-3 bg-white/50 rounded-full shadow-lg w-full max-w-xs sm:max-w-md md:max-w-2xl lg:max-w-3xl xl:max-w-4xl relative backdrop-blur-sm">
+    <div className="flex justify-center w-full py-3 sm:py-4 md:py-6 px-4 sm:px-6 md:px-8">
+      <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 bg-white/80 rounded-full shadow-lg w-full max-w-xs sm:max-w-md md:max-w-2xl lg:max-w-3xl xl:max-w-4xl relative backdrop-blur-sm border border-gray-100">
         <div className="flex items-center">
           <motion.div
-            className="w-6 h-6 sm:w-8 sm:h-8 mr-3 sm:mr-6"
+            className="w-7 h-7 sm:w-8 sm:h-8 mr-3 sm:mr-6"
             initial={{ scale: 0.8 }}
             animate={{ scale: 1 }}
             whileHover={{ rotate: 10 }}
             transition={{ duration: 0.3 }}
           >
-            <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-[#FF9966] to-[#FF5E62]" />
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-[#FF5A5F] to-[#FC642D]" />
           </motion.div>
         </div>
 
@@ -37,7 +37,7 @@ const Navbar1 = () => {
         >
           <button
             onClick={() => setIsFeedbackModalOpen(true)}
-            className="inline-flex items-center justify-center px-3 sm:px-4 md:px-5 py-2 text-sm sm:text-base text-white bg-black rounded-full hover:bg-gray-800 transition-colors touch-manipulation min-h-[44px]"
+            className="inline-flex items-center justify-center px-4 sm:px-5 md:px-6 py-2.5 sm:py-3 text-sm sm:text-base font-medium text-white bg-text-primary rounded-full hover:bg-gray-800 transition-colors touch-manipulation min-h-[44px]"
           >
             Share Feedback
           </button>
@@ -50,7 +50,7 @@ const Navbar1 = () => {
           whileTap={{ scale: 0.9 }}
           aria-label="Toggle menu"
         >
-          <Menu className="h-5 w-5 sm:h-6 sm:w-6 text-gray-900" />
+          <Menu className="h-5 w-5 sm:h-6 sm:w-6 text-text-primary" />
         </motion.button>
       </div>
 
@@ -73,7 +73,7 @@ const Navbar1 = () => {
               transition={{ delay: 0.2 }}
               aria-label="Close menu"
             >
-              <X className="h-5 w-5 sm:h-6 sm:w-6 text-gray-900" />
+              <X className="h-5 w-5 sm:h-6 sm:w-6 text-text-primary" />
             </motion.button>
             
             <div className="flex flex-col space-y-6 sm:space-y-8">
@@ -87,7 +87,7 @@ const Navbar1 = () => {
                 >
                   <a 
                     href="#" 
-                    className="text-lg sm:text-xl text-gray-900 font-medium block py-2 touch-manipulation" 
+                    className="text-lg sm:text-xl text-text-primary font-medium block py-2 touch-manipulation hover:text-text-secondary transition-colors" 
                     onClick={toggleMenu}
                   >
                     {item}
@@ -107,7 +107,7 @@ const Navbar1 = () => {
                     toggleMenu();
                     setIsFeedbackModalOpen(true);
                   }}
-                  className="inline-flex items-center justify-center w-full px-4 sm:px-5 py-3 sm:py-4 text-base sm:text-lg text-white bg-black rounded-full hover:bg-gray-800 transition-colors touch-manipulation min-h-[48px]"
+                  className="inline-flex items-center justify-center w-full px-4 sm:px-5 py-3 sm:py-4 text-base sm:text-lg font-medium text-white bg-text-primary rounded-full hover:bg-gray-800 transition-colors touch-manipulation min-h-[48px]"
                 >
                   Share Feedback
                 </button>
