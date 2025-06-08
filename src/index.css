@@ -183,94 +183,70 @@ html, body {
   }
 }
 
-/* Image Stack Positioning - Updated for 50% wider images */
+/* Image Stack Positioning - Updated for 5 images with 50% wider images */
 .image-stack-item-1 {
-  left: calc(50% - 450px);
-}
-
-.image-stack-item-2 {
   left: calc(50% - 300px);
 }
 
-.image-stack-item-3 {
+.image-stack-item-2 {
   left: calc(50% - 150px);
 }
 
-.image-stack-item-4 {
+.image-stack-item-3 {
   left: calc(50% - 90px);
 }
 
+.image-stack-item-4 {
+  left: calc(50% + 60px);
+}
+
 .image-stack-item-5 {
-  left: calc(50% + 15px);
-}
-
-.image-stack-item-6 {
-  left: calc(50% + 165px);
-}
-
-.image-stack-item-7 {
-  left: calc(50% + 315px);
+  left: calc(50% + 210px);
 }
 
 /* Responsive positioning for smaller screens */
 @media (min-width: 481px) {
   .image-stack-item-1 {
-    left: calc(50% - 600px);
-  }
-
-  .image-stack-item-2 {
     left: calc(50% - 390px);
   }
 
-  .image-stack-item-3 {
+  .image-stack-item-2 {
     left: calc(50% - 180px);
   }
 
-  .image-stack-item-4 {
+  .image-stack-item-3 {
     left: calc(50% - 120px);
   }
 
+  .image-stack-item-4 {
+    left: calc(50% + 60px);
+  }
+
   .image-stack-item-5 {
-    left: calc(50% - 15px);
-  }
-
-  .image-stack-item-6 {
-    left: calc(50% + 135px);
-  }
-
-  .image-stack-item-7 {
-    left: calc(50% + 285px);
+    left: calc(50% + 240px);
   }
 }
 
 /* Responsive positioning for medium screens */
 @media (min-width: 769px) {
   .image-stack-item-1 {
-    left: calc(50% - 750px);
-  }
-
-  .image-stack-item-2 {
     left: calc(50% - 487px);
   }
 
-  .image-stack-item-3 {
+  .image-stack-item-2 {
     left: calc(50% - 225px);
   }
 
-  .image-stack-item-4 {
+  .image-stack-item-3 {
     left: calc(50% - 150px);
   }
 
+  .image-stack-item-4 {
+    left: calc(50% + 75px);
+  }
+
   .image-stack-item-5 {
-    left: calc(50% - 37px);
-  }
-
-  .image-stack-item-6 {
-    left: calc(50% + 150px);
-  }
-
-  .image-stack-item-7 {
-    left: calc(50% + 337px);
+    left: calc(50% + 300px);
   }
 }
 

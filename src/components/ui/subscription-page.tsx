@@ -11,15 +11,13 @@ const SubscriptionPage = () => {
     setEmail('');
   };
 
-  // Sample images for the stack - using Pexels URLs
+  // Sample images for the stack - using Pexels URLs (reduced to 5 images)
   const stackImages = [
     'https://images.pexels.com/photos/18111088/pexels-photo-18111088.jpeg',
     'https://images.pexels.com/photos/18111089/pexels-photo-18111089.jpeg',
     'https://images.pexels.com/photos/18111090/pexels-photo-18111090.jpeg',
     'https://images.pexels.com/photos/18111091/pexels-photo-18111091.jpeg',
     'https://images.pexels.com/photos/18111092/pexels-photo-18111092.jpeg',
-    'https://images.pexels.com/photos/18111093/pexels-photo-18111093.jpeg',
-    'https://images.pexels.com/photos/18111094/pexels-photo-18111094.jpeg',
   ];
 
   return (
@@ -74,12 +72,12 @@ const SubscriptionPage = () => {
         </motion.form>
       </div>
 
-      {/* Image Stack Group - Updated with 2rem margins and 50% wider images */}
+      {/* Image Stack Group - Updated with 5 images, 2rem margins and 50% wider images */}
       <div className="relative w-full min-h-[24rem] overflow-hidden flex justify-center items-end mx-8">
         {stackImages.map((imageUrl, index) => {
-          // Calculate height and z-index for step effect
-          const heights = ['h-48', 'h-64', 'h-80', 'h-96', 'h-80', 'h-64', 'h-48'];
-          const zIndexes = ['z-10', 'z-20', 'z-30', 'z-40', 'z-30', 'z-20', 'z-10'];
+          // Calculate height and z-index for step effect (adjusted for 5 images)
+          const heights = ['h-48', 'h-64', 'h-80', 'h-64', 'h-48'];
+          const zIndexes = ['z-10', 'z-20', 'z-30', 'z-20', 'z-10'];
           
           return (
             <motion.div
