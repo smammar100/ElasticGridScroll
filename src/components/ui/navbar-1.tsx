@@ -17,7 +17,7 @@ const Navbar1 = () => {
       <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 bg-white/80 rounded-full shadow-lg w-full max-w-xs sm:max-w-md md:max-w-2xl lg:max-w-3xl xl:max-w-4xl relative backdrop-blur-sm border border-gray-100">
         <div className="flex items-center">
           <motion.div
-            className="w-7 h-7 sm:w-8 sm:h-8 mr-3 sm:mr-6"
+            className="w-7 h-7 sm:w-8 sm:h-8 mr-3 sm:mr-4"
             initial={{ scale: 0.8 }}
             animate={{ scale: 1 }}
             whileHover={{ rotate: 10 }}
@@ -25,6 +25,16 @@ const Navbar1 = () => {
           >
             <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-[#FF5A5F] to-[#FC642D]" />
           </motion.div>
+          
+          {/* Curatit Wordmark */}
+          <motion.span
+            className="text-lg sm:text-xl font-semibold text-text-primary tracking-tight"
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
+          >
+            Curatit
+          </motion.span>
         </div>
 
         {/* Desktop CTA Button */}
