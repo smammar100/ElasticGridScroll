@@ -84,7 +84,7 @@ const SubscriptionPage = () => {
           return (
             <motion.div
               key={index}
-              className={`image-stack-item-${index + 1} absolute bottom-0 ${heights[index]} ${zIndexes[index]} w-24 sm:w-32 md:w-40 rounded-t-xl overflow-hidden shadow-lg`}
+              className={`image-stack-item-${index + 1} absolute bottom-0 ${heights[index]} ${zIndexes[index]} w-[120px] sm:w-[160px] md:w-[200px] rounded-t-xl overflow-hidden shadow-lg`}
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.3 + index * 0.1 }}

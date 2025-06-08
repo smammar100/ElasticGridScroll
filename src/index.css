@@ -183,68 +183,37 @@ html, body {
   }
 }
 
-/* Image Stack Positioning */
+/* Image Stack Positioning - Updated for 25% wider images */
 .image-stack-item-1 {
-  left: calc(50% - 240px);
+  left: calc(50% - 300px);
 }
 
 .image-stack-item-2 {
-  left: calc(50% - 160px);
+  left: calc(50% - 200px);
 }
 
 .image-stack-item-3 {
-  left: calc(50% - 80px);
+  left: calc(50% - 100px);
 }
 
 .image-stack-item-4 {
-  left: calc(50% - 48px);
+  left: calc(50% - 60px);
 }
 
 .image-stack-item-5 {
-  left: calc(50% + 8px);
+  left: calc(50% + 10px);
 }
 
 .image-stack-item-6 {
-  left: calc(50% + 88px);
+  left: calc(50% + 110px);
 }
 
 .image-stack-item-7 {
-  left: calc(50% + 168px);
+  left: calc(50% + 210px);
 }
 
 /* Responsive positioning for smaller screens */
 @media (min-width: 481px) {
-  .image-stack-item-1 {
-    left: calc(50% - 320px);
-  }
-
-  .image-stack-item-2 {
-    left: calc(50% - 208px);
-  }
-
-  .image-stack-item-3 {
-    left: calc(50% - 96px);
-  }
-
-  .image-stack-item-4 {
-    left: calc(50% - 64px);
-  }
-
-  .image-stack-item-5 {
-    left: calc(50% + 0px);
-  }
-
-  .image-stack-item-6 {
-    left: calc(50% + 96px);
-  }
-
-  .image-stack-item-7 {
-    left: calc(50% + 208px);
-  }
-}
-
-/* Responsive positioning for medium screens */
-@media (min-width: 769px) {
   .image-stack-item-1 {
     left: calc(50% - 400px);
   }
@@ -262,15 +231,46 @@ html, body {
   }
 
   .image-stack-item-5 {
-    left: calc(50% + 0px);
+    left: calc(50% - 10px);
   }
 
   .image-stack-item-6 {
-    left: calc(50% + 120px);
+    left: calc(50% + 90px);
   }
 
   .image-stack-item-7 {
-    left: calc(50% + 260px);
+    left: calc(50% + 190px);
+  }
+}
+
+/* Responsive positioning for medium screens */
+@media (min-width: 769px) {
+  .image-stack-item-1 {
+    left: calc(50% - 500px);
+  }
+
+  .image-stack-item-2 {
+    left: calc(50% - 325px);
+  }
+
+  .image-stack-item-3 {
+    left: calc(50% - 150px);
+  }
+
+  .image-stack-item-4 {
+    left: calc(50% - 100px);
+  }
+
+  .image-stack-item-5 {
+    left: calc(50% - 25px);
+  }
+
+  .image-stack-item-6 {
+    left: calc(50% + 100px);
+  }
+
+  .image-stack-item-7 {
+    left: calc(50% + 225px);
   }
 }
 
