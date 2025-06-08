@@ -11,7 +11,7 @@ const SubscriptionPage = () => {
     setEmail('');
   };
 
-  // Sample images for the stack - using Pexels URLs (reduced to 5 images)
+  // Sample images for the stack - responsive count
   const stackImages = [
     'https://images.pexels.com/photos/18111088/pexels-photo-18111088.jpeg',
     'https://images.pexels.com/photos/18111089/pexels-photo-18111089.jpeg',
@@ -72,17 +72,63 @@ const SubscriptionPage = () => {
         </motion.form>
       </div>
 
-      {/* Image Stack Group - Centrally aligned with proper positioning */}
-      <div className="relative w-full min-h-[24rem] overflow-hidden flex justify-center items-end">
+      {/* Responsive Image Stack - Centrally aligned with proper positioning */}
+      <div className="relative w-full min-h-[20rem] sm:min-h-[24rem] md:min-h-[28rem] overflow-hidden flex justify-center items-end">
         {stackImages.map((imageUrl, index) => {
-          // Calculate height and z-index for step effect (adjusted for 5 images)
-          const heights = ['h-48', 'h-64', 'h-80', 'h-64', 'h-48'];
-          const zIndexes = ['z-10', 'z-20', 'z-30', 'z-20', 'z-10'];
-          
+          // Responsive visibility: 3 on mobile/tablet, 5 on desktop
+          const isVisible = {
+            mobile: index < 3, // Show first 3 on mobile
+            tablet: index < 3, // Show first 3 on tablet  
+            desktop: index < 5 // Show all 5 on desktop
+          };
+
+          // Skip rendering hidden images for performance
+          if (typeof window !== 'undefined') {
+            const isMobile = window.innerWidth < 769;
+            const isTablet = window.innerWidth >= 769 && window.innerWidth < 1025;
+            
+            if (isMobile && !isVisible.mobile) return null;
+            if (isTablet && !isVisible.tablet) return null;
+          }
+
+          // Responsive heights for step effect
+          const heights = {
+            mobile: ['h-40', 'h-52', 'h-40'], // 3 images
+            tablet: ['h-48', 'h-64', 'h-48'], // 3 images
+            desktop: ['h-48', 'h-64', 'h-80', 'h-64', 'h-48'] // 5 images
+          };
+
+          // Responsive z-indexes
+          const zIndexes = {
+            mobile: ['z-10', 'z-30', 'z-10'],
+            tablet: ['z-10', 'z-30', 'z-10'], 
+            desktop: ['z-10', 'z-20', 'z-30', 'z-20', 'z-10']
+          };
+
+          // Responsive widths
+          const widths = {
+            mobile: 'w-[200px]', // Smaller on mobile
+            tablet: 'w-[280px]',  // Medium on tablet
+            desktop: 'w-[270px]'  // Standard on desktop
+          };
+
+          // Responsive positioning classes
+          const positions = {
+            mobile: ['left-[calc(50%-150px)]', 'left-[calc(50%-100px)]', 'left-[calc(50%-50px)]'],
+            tablet: ['left-[calc(50%-210px)]', 'left-[calc(50%-140px)]', 'left-[calc(50%-70px)]'],
+            desktop: ['left-[calc(50%-337.5px)]', 'left-[calc(50%-202.5px)]', 'left-[calc(50%-135px)]', 'left-[calc(50%-67.5px)]', 'left-[calc(50%+67.5px)]']
+          };
+
           return (
             <motion.div
               key={index}
-              className={`image-stack-item-${index + 1} absolute bottom-0 ${heights[index]} ${zIndexes[index]} w-[270px] sm:w-[360px] md:w-[450px] rounded-t-xl overflow-hidden shadow-lg`}
+              className={`
+                absolute bottom-0 rounded-t-xl overflow-hidden shadow-lg
+                ${heights.mobile[index] || 'h-40'} ${widths.mobile} ${zIndexes.mobile[index] || 'z-10'} ${positions.mobile[index] || ''}
+                sm:${heights.tablet[index] || 'h-48'} sm:${widths.tablet} sm:${zIndexes.tablet[index] || 'z-10'} sm:${positions.tablet[index] || ''}
+                md:${heights.desktop[index] || 'h-48'} md:${widths.desktop} md:${zIndexes.desktop[index] || 'z-10'} md:${positions.desktop[index] || ''}
+                ${index >= 3 ? 'hidden md:block' : ''} // Hide 4th and 5th images on mobile/tablet
+              `}
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.3 + index * 0.1 }}
@@ -91,7 +137,13 @@ const SubscriptionPage = () => {
                 src={imageUrl}
                 alt={`Website inspiration ${index + 1}`}
                 className="w-full h-full object-cover"
-                loading="lazy"
+                loading={index < 3 ? "eager" : "lazy"} // Eager load first 3, lazy load others
+                decoding="async"
+                style={{
+                  willChange: 'transform',
+                  backfaceVisibility: 'hidden',
+                  transform: 'translateZ(0)'
+                }}
               />
             </motion.div>
           );

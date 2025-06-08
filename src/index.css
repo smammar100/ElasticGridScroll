@@ -183,70 +183,68 @@ html, body {
   }
 }
 
-/* Image Stack Positioning - Centrally aligned with calc(50% - offset) */
-.image-stack-item-1 {
-  left: calc(50% - 337.5px);
-}
-
-.image-stack-item-2 {
-  left: calc(50% - 202.5px);
-}
-
-.image-stack-item-3 {
-  left: calc(50% - 135px);
-}
-
-.image-stack-item-4 {
-  left: calc(50% - 67.5px);
-}
-
-.image-stack-item-5 {
-  left: calc(50% + 67.5px);
-}
-
-/* Responsive positioning for smaller screens */
-@media (min-width: 481px) {
-  .image-stack-item-1 {
-    left: calc(50% - 450px);
+/* Responsive Image Stack Positioning */
+@media (max-width: 768px) {
+  /* Mobile: 3 images, smaller size, closer together */
+  .image-stack-mobile-1 {
+    left: calc(50% - 150px);
+    width: 200px;
   }
-
-  .image-stack-item-2 {
-    left: calc(50% - 270px);
+  
+  .image-stack-mobile-2 {
+    left: calc(50% - 100px);
+    width: 200px;
   }
-
-  .image-stack-item-3 {
-    left: calc(50% - 180px);
-  }
-
-  .image-stack-item-4 {
-    left: calc(50% - 90px);
-  }
-
-  .image-stack-item-5 {
-    left: calc(50% + 90px);
+  
+  .image-stack-mobile-3 {
+    left: calc(50% - 50px);
+    width: 200px;
   }
 }
 
-/* Responsive positioning for medium screens */
-@media (min-width: 769px) {
-  .image-stack-item-1 {
-    left: calc(50% - 562.5px);
+@media (min-width: 769px) and (max-width: 1024px) {
+  /* Tablet: 3 images, medium size */
+  .image-stack-tablet-1 {
+    left: calc(50% - 210px);
+    width: 280px;
   }
+  
+  .image-stack-tablet-2 {
+    left: calc(50% - 140px);
+    width: 280px;
+  }
+  
+  .image-stack-tablet-3 {
+    left: calc(50% - 70px);
+    width: 280px;
+  }
+}
 
-  .image-stack-item-2 {
+@media (min-width: 1025px) {
+  /* Desktop: 5 images, full size */
+  .image-stack-desktop-1 {
     left: calc(50% - 337.5px);
+    width: 270px;
   }
-
-  .image-stack-item-3 {
-    left: calc(50% - 225px);
+  
+  .image-stack-desktop-2 {
+    left: calc(50% - 202.5px);
+    width: 270px;
   }
-
-  .image-stack-item-4 {
-    left: calc(50% - 112.5px);
+  
+  .image-stack-desktop-3 {
+    left: calc(50% - 135px);
+    width: 270px;
   }
-
-  .image-stack-item-5 {
-    left: calc(50% + 112.5px);
+  
+  .image-stack-desktop-4 {
+    left: calc(50% - 67.5px);
+    width: 270px;
+  }
+  
+  .image-stack-desktop-5 {
+    left: calc(50% + 67.5px);
+    width: 270px;
   }
 }
 
@@ -309,6 +307,14 @@ button, a, [role="button"] {
   will-change: transform;
   backface-visibility: hidden;
   transform: translateZ(0);
+}
+
+/* Image stack performance optimizations */
+.image-stack-item {
+  will-change: transform;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  contain: layout style paint;
 }
 
 /* Smooth scrolling for better UX */
