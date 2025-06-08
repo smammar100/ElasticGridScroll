@@ -27,7 +27,7 @@ const SubscriptionPage = () => {
       {/* Content Section */}
       <div className="flex-1 flex flex-col justify-center items-center px-4 sm:px-6 md:px-8 py-12 sm:py-16 md:py-20">
         {/* Header Text Group */}
-        <div className="text-center max-w-2xl sm:max-w-3xl md:max-w-4xl mb-8 sm:mb-12 md:mb-16">
+        <div className="text-center max-w-2xl sm:max-w-3xl md:max-w-4xl mb-6 sm:mb-8 md:mb-10">
           <motion.h1 
             className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-text-primary leading-tight mb-4 sm:mb-6"
             initial={{ opacity: 0, y: 20 }}
