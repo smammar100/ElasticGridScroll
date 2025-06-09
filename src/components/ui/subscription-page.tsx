@@ -1,12 +1,12 @@
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
+import { OptimizedImage } from './optimized-image';
 
 const SubscriptionPage = () => {
   const [email, setEmail] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle subscription logic here
     console.log('Subscribing email:', email);
     setEmail('');
   };
@@ -80,7 +80,7 @@ const SubscriptionPage = () => {
         </motion.form>
       </div>
 
-      {/* Image Stack Group - Optimized for performance */}
+      {/* Optimized Image Stack Group */}
       <div className="relative w-full min-h-[20rem] sm:min-h-[22rem] md:min-h-[24rem] overflow-hidden flex justify-center items-end">
         {/* Mobile Stack (3 images) */}
         <div className="block sm:hidden">
@@ -99,12 +99,14 @@ const SubscriptionPage = () => {
                 className={`absolute bottom-0 ${heights[index]} ${zIndexes[index]} ${positions[index]} w-[200px] rounded-t-xl overflow-hidden shadow-lg transform-gpu`}
                 style={{ willChange: 'transform' }}
               >
-                <img
+                <OptimizedImage
                   src={imageUrl}
                   alt={`Website inspiration ${index + 1}`}
-                  className="w-full h-full object-cover"
-                  loading={index < 2 ? "eager" : "lazy"}
-                  decoding="async"
+                  width={200}
+                  height={index === 1 ? 192 : 160}
+                  quality={75}
+                  priority={index < 2}
+                  className="w-full h-full"
                 />
               </div>
             );
@@ -128,12 +130,14 @@ const SubscriptionPage = () => {
                 className={`absolute bottom-0 ${heights[index]} ${zIndexes[index]} ${positions[index]} w-[280px] rounded-t-xl overflow-hidden shadow-lg transform-gpu`}
                 style={{ willChange: 'transform' }}
               >
-                <img
+                <OptimizedImage
                   src={imageUrl}
                   alt={`Website inspiration ${index + 1}`}
-                  className="w-full h-full object-cover"
-                  loading={index < 2 ? "eager" : "lazy"}
-                  decoding="async"
+                  width={280}
+                  height={index === 1 ? 224 : 192}
+                  quality={75}
+                  priority={index < 2}
+                  className="w-full h-full"
                 />
               </div>
             );
@@ -153,18 +157,23 @@ const SubscriptionPage = () => {
               'left-[calc(50%+67.5px)]'
             ];
             
+            const heightMap = { 'h-48': 192, 'h-64': 256, 'h-80': 320 };
+            const heightValue = heightMap[heights[index] as keyof typeof heightMap];
+            
             return (
               <div
                 key={`desktop-${index}`}
                 className={`absolute bottom-0 ${heights[index]} ${zIndexes[index]} ${positions[index]} w-[270px] rounded-t-xl overflow-hidden shadow-lg transform-gpu`}
                 style={{ willChange: 'transform' }}
               >
-                <img
+                <OptimizedImage
                   src={imageUrl}
                   alt={`Website inspiration ${index + 1}`}
-                  className="w-full h-full object-cover"
-                  loading={index < 3 ? "eager" : "lazy"}
-                  decoding="async"
+                  width={270}
+                  height={heightValue}
+                  quality={75}
+                  priority={index < 3}
+                  className="w-full h-full"
                 />
               </div>
             );

@@ -1,5 +1,6 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { Download } from 'lucide-react';
+import { OptimizedImage } from './optimized-image';
 import gsap from 'gsap';
 import ScrollTrigger from 'gsap/ScrollTrigger';
 import ScrollSmoother from 'gsap/ScrollSmoother';
@@ -39,13 +40,13 @@ function Grid() {
   const currentColumnCountRef = useRef<number | null>(null);
   const smootherRef = useRef<any>(null);
 
-  const getColumnCount = () => {
+  const getColumnCount = useCallback(() => {
     if (!gridRef.current) return 0;
     const styles = getComputedStyle(gridRef.current);
     return styles.getPropertyValue('grid-template-columns').split(' ').filter(Boolean).length;
-  };
+  }, []);
 
-  const groupItemsByColumn = () => {
+  const groupItemsByColumn = useCallback(() => {
     if (!gridRef.current) return { columns: [], numColumns: 0 };
     const numColumns = getColumnCount();
     const columns = Array.from({ length: numColumns }, () => []);
@@ -55,15 +56,15 @@ function Grid() {
     });
 
     return { columns, numColumns };
-  };
+  }, [getColumnCount]);
 
-  const clearGrid = () => {
+  const clearGrid = useCallback(() => {
     if (!gridRef.current) return;
     gridRef.current.querySelectorAll('.grid__column').forEach(col => col.remove());
     originalItemsRef.current.forEach(item => gridRef.current?.appendChild(item));
-  };
+  }, []);
 
-  const buildGrid = (columns: Element[][]) => {
+  const buildGrid = useCallback((columns: Element[][]) => {
     if (!gridRef.current) return [];
     const fragment = document.createDocumentFragment();
     const columnContainers: { element: HTMLDivElement; lag: number }[] = [];
@@ -81,9 +82,9 @@ function Grid() {
 
     gridRef.current.appendChild(fragment);
     return columnContainers;
-  };
+  }, []);
 
-  const initGrid = () => {
+  const initGrid = useCallback(() => {
     if (!gridRef.current) return;
     clearGrid();
     const { columns, numColumns } = groupItemsByColumn();
@@ -95,64 +96,59 @@ function Grid() {
         smootherRef.current.effects(element, { speed: 1, lag });
       });
     }
-  };
+  }, [clearGrid, groupItemsByColumn, buildGrid]);
 
-  // Function to download image
-  const downloadImage = async (imageUrl: string, brandName: string) => {
+  // Optimized download function with better error handling
+  const downloadImage = useCallback(async (imageUrl: string, brandName: string) => {
     try {
-      // Show loading state
       const button = document.activeElement as HTMLButtonElement;
       if (button) {
         button.disabled = true;
         button.innerHTML = '<div class="w-3 h-3 sm:w-4 sm:h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin"></div>';
       }
 
-      // Fetch the image
-      const response = await fetch(imageUrl);
-      const blob = await response.blob();
+      // Use fetch with optimized headers
+      const response = await fetch(imageUrl, {
+        headers: {
+          'Accept': 'image/webp,image/jpeg,image/*,*/*;q=0.8',
+        },
+      });
       
-      // Create download link
+      if (!response.ok) throw new Error('Network response was not ok');
+      
+      const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
       link.download = `${brandName.toLowerCase()}-brand-image.jpg`;
       
-      // Trigger download
       document.body.appendChild(link);
       link.click();
-      
-      // Cleanup
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
       
-      // Reset button
       if (button) {
         button.disabled = false;
         button.innerHTML = '<svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>';
       }
     } catch (error) {
       console.error('Download failed:', error);
-      
-      // Reset button on error
       const button = document.activeElement as HTMLButtonElement;
       if (button) {
         button.disabled = false;
         button.innerHTML = '<svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>';
       }
-      
-      // Show error message
-      alert('Download failed. Please try again.');
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (!gridRef.current) return;
     originalItemsRef.current = Array.from(gridRef.current.querySelectorAll('.grid__item'));
 
-    // Initialize ScrollSmoother only once
+    // Initialize ScrollSmoother with optimized settings
     if (!smootherRef.current) {
       smootherRef.current = ScrollSmoother.create({
-        smooth: 0.8, // Reduced for better performance
+        smooth: 0.6, // Reduced for better performance
         effects: true,
         normalizeScroll: true,
       });
@@ -167,11 +163,19 @@ function Grid() {
       }
     };
 
-    window.addEventListener('resize', handleResize);
-    return () => {
-      window.removeEventListener('resize', handleResize);
+    // Debounce resize handler for better performance
+    let resizeTimeout: NodeJS.Timeout;
+    const debouncedResize = () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(handleResize, 150);
     };
-  }, []);
+
+    window.addEventListener('resize', debouncedResize);
+    return () => {
+      window.removeEventListener('resize', debouncedResize);
+      clearTimeout(resizeTimeout);
+    };
+  }, [initGrid, getColumnCount]);
 
   return (
     <div 
@@ -183,30 +187,33 @@ function Grid() {
         
         return (
           <figure key={i} className="grid__item group cursor-pointer">
-            <div 
-              className="grid__item-img relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-105" 
-              style={{
-                backgroundImage: `url(${imageUrl})`,
-                aspectRatio: '1/1',
-                backgroundSize: 'cover',
-                backgroundPosition: 'center'
-              }}
-            >
-              {/* Brand Logo - Top Left - Responsive sizing */}
+            <div className="relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+              <OptimizedImage
+                src={imageUrl}
+                alt={`${brand.name} brand inspiration`}
+                width={400}
+                height={400}
+                quality={80}
+                priority={i < 4} // Prioritize first 4 images
+                className="w-full h-full"
+                style={{ aspectRatio: '1/1' }}
+              />
+
+              {/* Brand Logo - Top Left */}
               <div className="absolute top-3 left-3 sm:top-4 sm:left-4 z-10">
                 <div className={`w-9 h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-br ${brand.color} flex items-center justify-center shadow-lg`}>
                   <span className="text-white font-semibold text-sm sm:text-base md:text-lg">{brand.logo}</span>
                 </div>
               </div>
 
-              {/* Brand Name - Below Logo - Responsive sizing */}
+              {/* Brand Name */}
               <div className="absolute top-14 left-3 sm:top-16 sm:left-4 md:top-18 md:left-4 z-10">
                 <h3 className="text-white font-medium text-sm sm:text-base md:text-lg bg-black/60 px-3 py-1.5 rounded-lg backdrop-blur-sm">
                   {brand.name}
                 </h3>
               </div>
 
-              {/* Download Button - Bottom Right - Touch-friendly sizing */}
+              {/* Download Button */}
               <div className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 z-10">
                 <button 
                   className="w-11 h-11 sm:w-12 sm:h-12 md:w-14 md:h-14 bg-white/95 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-110 group-hover:bg-text-primary group-hover:text-white disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"

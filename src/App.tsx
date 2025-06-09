@@ -12,15 +12,23 @@ gsap.registerPlugin(ScrollTrigger, ScrollSmoother)
 
 function App() {
   useEffect(() => {
-    // Initialize ScrollSmoother globally once
+    // Initialize ScrollSmoother with optimized settings for performance
     const smoother = ScrollSmoother.create({
-      smooth: 0.8, // Reduced for better performance
+      smooth: 0.6, // Reduced for better performance
       effects: true,
       normalizeScroll: true,
     })
 
+    // Preload critical resources
+    const preloadLink = document.createElement('link');
+    preloadLink.rel = 'preload';
+    preloadLink.href = 'https://images.pexels.com/photos/18111088/pexels-photo-18111088.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&dpr=1';
+    preloadLink.as = 'image';
+    document.head.appendChild(preloadLink);
+
     return () => {
       smoother?.kill()
+      document.head.removeChild(preloadLink);
     }
   }, [])
 
