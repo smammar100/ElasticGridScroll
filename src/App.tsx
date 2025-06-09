@@ -3,6 +3,7 @@ import { Navbar1 } from "@/components/ui/navbar-1"
 import { Hero } from "@/components/ui/animated-hero"
 import { Grid } from "@/components/ui/grid"
 import { SubscriptionPage } from "@/components/ui/subscription-page"
+import { CardGridDemo } from "@/components/ui/card-grid-demo"
 import gsap from 'gsap'
 import ScrollTrigger from 'gsap/ScrollTrigger'
 import ScrollSmoother from 'gsap/ScrollSmoother'
@@ -22,6 +23,13 @@ function App() {
       smoother?.kill()
     }
   }, [])
+
+  // Check if we should show the card grid demo
+  const showCardDemo = new URLSearchParams(window.location.search).get('demo') === 'cards';
+
+  if (showCardDemo) {
+    return <CardGridDemo />;
+  }
 
   return (
     <div id="smooth-wrapper" className="min-h-screen">
