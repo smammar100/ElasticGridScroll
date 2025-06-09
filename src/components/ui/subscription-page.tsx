@@ -40,7 +40,7 @@ const SubscriptionPage = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            Get weekly top websites delivered to your inbox, every monday. No spam, only inspiration.
+            Get weekly top posts delivered to your inbox, every monday. No spam, only inspiration.
           </motion.h1>
           
           <motion.p 
