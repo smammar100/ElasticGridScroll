@@ -183,73 +183,6 @@ html, body {
   }
 }
 
-/* Image Stack Positioning - Centrally aligned with calc(50% - offset) */
-.image-stack-item-1 {
-  left: calc(50% - 337.5px);
-}
-
-.image-stack-item-2 {
-  left: calc(50% - 202.5px);
-}
-
-.image-stack-item-3 {
-  left: calc(50% - 135px);
-}
-
-.image-stack-item-4 {
-  left: calc(50% - 67.5px);
-}
-
-.image-stack-item-5 {
-  left: calc(50% + 67.5px);
-}
-
-/* Responsive positioning for smaller screens */
-@media (min-width: 481px) {
-  .image-stack-item-1 {
-    left: calc(50% - 450px);
-  }
-
-  .image-stack-item-2 {
-    left: calc(50% - 270px);
-  }
-
-  .image-stack-item-3 {
-    left: calc(50% - 180px);
-  }
-
-  .image-stack-item-4 {
-    left: calc(50% - 90px);
-  }
-
-  .image-stack-item-5 {
-    left: calc(50% + 90px);
-  }
-}
-
-/* Responsive positioning for medium screens */
-@media (min-width: 769px) {
-  .image-stack-item-1 {
-    left: calc(50% - 562.5px);
-  }
-
-  .image-stack-item-2 {
-    left: calc(50% - 337.5px);
-  }
-
-  .image-stack-item-3 {
-    left: calc(50% - 225px);
-  }
-
-  .image-stack-item-4 {
-    left: calc(50% - 112.5px);
-  }
-
-  .image-stack-item-5 {
-    left: calc(50% + 112.5px);
-  }
-}
-
 /* Touch-friendly interactions */
 @media (hover: none) and (pointer: coarse) {
   .hover\:scale-105:hover {
@@ -314,6 +247,13 @@ button, a, [role="button"] {
 /* Smooth scrolling for better UX */
 html {
   scroll-behavior: smooth;
+}
+
+/* Performance optimizations for image stack */
+.transform-gpu {
+  transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
 }
 
 /* Focus styles for accessibility */

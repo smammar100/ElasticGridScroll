@@ -37,6 +37,7 @@ function Grid() {
   const gridRef = useRef<HTMLDivElement>(null);
   const originalItemsRef = useRef<Element[]>([]);
   const currentColumnCountRef = useRef<number | null>(null);
+  const smootherRef = useRef<any>(null);
 
   const getColumnCount = () => {
     if (!gridRef.current) return 0;
@@ -89,10 +90,9 @@ function Grid() {
     currentColumnCountRef.current = numColumns;
     const columnContainers = buildGrid(columns);
 
-    const smoother = ScrollSmoother.get();
-    if (smoother) {
+    if (smootherRef.current) {
       columnContainers.forEach(({ element, lag }) => {
-        smoother.effects(element, { speed: 1, lag });
+        smootherRef.current.effects(element, { speed: 1, lag });
       });
     }
   };
@@ -149,11 +149,14 @@ function Grid() {
     if (!gridRef.current) return;
     originalItemsRef.current = Array.from(gridRef.current.querySelectorAll('.grid__item'));
 
-    const smoother = ScrollSmoother.create({
-      smooth: 1,
-      effects: true,
-      normalizeScroll: true,
-    });
+    // Initialize ScrollSmoother only once
+    if (!smootherRef.current) {
+      smootherRef.current = ScrollSmoother.create({
+        smooth: 0.8, // Reduced for better performance
+        effects: true,
+        normalizeScroll: true,
+      });
+    }
 
     initGrid();
 
@@ -167,7 +170,6 @@ function Grid() {
     window.addEventListener('resize', handleResize);
     return () => {
       window.removeEventListener('resize', handleResize);
-      smoother?.kill();
     };
   }, []);
 

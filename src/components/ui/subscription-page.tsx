@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 
 const SubscriptionPage = () => {
@@ -11,14 +11,22 @@ const SubscriptionPage = () => {
     setEmail('');
   };
 
-  // Sample images for the stack - using Pexels URLs (reduced to 5 images)
-  const stackImages = [
-    'https://images.pexels.com/photos/18111088/pexels-photo-18111088.jpeg',
-    'https://images.pexels.com/photos/18111089/pexels-photo-18111089.jpeg',
-    'https://images.pexels.com/photos/18111090/pexels-photo-18111090.jpeg',
-    'https://images.pexels.com/photos/18111091/pexels-photo-18111091.jpeg',
-    'https://images.pexels.com/photos/18111092/pexels-photo-18111092.jpeg',
-  ];
+  // Memoize image data to prevent re-renders
+  const imageData = useMemo(() => {
+    const baseImages = [
+      'https://images.pexels.com/photos/18111088/pexels-photo-18111088.jpeg',
+      'https://images.pexels.com/photos/18111089/pexels-photo-18111089.jpeg',
+      'https://images.pexels.com/photos/18111090/pexels-photo-18111090.jpeg',
+      'https://images.pexels.com/photos/18111091/pexels-photo-18111091.jpeg',
+      'https://images.pexels.com/photos/18111092/pexels-photo-18111092.jpeg',
+    ];
+
+    return {
+      mobile: baseImages.slice(0, 3),
+      tablet: baseImages.slice(0, 3),
+      desktop: baseImages
+    };
+  }, []);
 
   return (
     <div className="bg-white flex flex-col justify-between">
@@ -72,30 +80,96 @@ const SubscriptionPage = () => {
         </motion.form>
       </div>
 
-      {/* Image Stack Group - Centrally aligned with proper positioning */}
-      <div className="relative w-full min-h-[24rem] overflow-hidden flex justify-center items-end">
-        {stackImages.map((imageUrl, index) => {
-          // Calculate height and z-index for step effect (adjusted for 5 images)
-          const heights = ['h-48', 'h-64', 'h-80', 'h-64', 'h-48'];
-          const zIndexes = ['z-10', 'z-20', 'z-30', 'z-20', 'z-10'];
-          
-          return (
-            <motion.div
-              key={index}
-              className={`image-stack-item-${index + 1} absolute bottom-0 ${heights[index]} ${zIndexes[index]} w-[270px] sm:w-[360px] md:w-[450px] rounded-t-xl overflow-hidden shadow-lg`}
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.3 + index * 0.1 }}
-            >
-              <img
-                src={imageUrl}
-                alt={`Website inspiration ${index + 1}`}
-                className="w-full h-full object-cover"
-                loading="lazy"
-              />
-            </motion.div>
-          );
-        })}
+      {/* Image Stack Group - Optimized for performance */}
+      <div className="relative w-full min-h-[20rem] sm:min-h-[22rem] md:min-h-[24rem] overflow-hidden flex justify-center items-end">
+        {/* Mobile Stack (3 images) */}
+        <div className="block sm:hidden">
+          {imageData.mobile.map((imageUrl, index) => {
+            const heights = ['h-40', 'h-48', 'h-40'];
+            const zIndexes = ['z-10', 'z-20', 'z-10'];
+            const positions = [
+              'left-[calc(50%-150px)]',
+              'left-[calc(50%-100px)]', 
+              'left-[calc(50%-50px)]'
+            ];
+            
+            return (
+              <div
+                key={`mobile-${index}`}
+                className={`absolute bottom-0 ${heights[index]} ${zIndexes[index]} ${positions[index]} w-[200px] rounded-t-xl overflow-hidden shadow-lg transform-gpu`}
+                style={{ willChange: 'transform' }}
+              >
+                <img
+                  src={imageUrl}
+                  alt={`Website inspiration ${index + 1}`}
+                  className="w-full h-full object-cover"
+                  loading={index < 2 ? "eager" : "lazy"}
+                  decoding="async"
+                />
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Tablet Stack (3 images) */}
+        <div className="hidden sm:block md:hidden">
+          {imageData.tablet.map((imageUrl, index) => {
+            const heights = ['h-48', 'h-56', 'h-48'];
+            const zIndexes = ['z-10', 'z-20', 'z-10'];
+            const positions = [
+              'left-[calc(50%-210px)]',
+              'left-[calc(50%-140px)]',
+              'left-[calc(50%-70px)]'
+            ];
+            
+            return (
+              <div
+                key={`tablet-${index}`}
+                className={`absolute bottom-0 ${heights[index]} ${zIndexes[index]} ${positions[index]} w-[280px] rounded-t-xl overflow-hidden shadow-lg transform-gpu`}
+                style={{ willChange: 'transform' }}
+              >
+                <img
+                  src={imageUrl}
+                  alt={`Website inspiration ${index + 1}`}
+                  className="w-full h-full object-cover"
+                  loading={index < 2 ? "eager" : "lazy"}
+                  decoding="async"
+                />
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Desktop Stack (5 images) */}
+        <div className="hidden md:block">
+          {imageData.desktop.map((imageUrl, index) => {
+            const heights = ['h-48', 'h-64', 'h-80', 'h-64', 'h-48'];
+            const zIndexes = ['z-10', 'z-20', 'z-30', 'z-20', 'z-10'];
+            const positions = [
+              'left-[calc(50%-337.5px)]',
+              'left-[calc(50%-202.5px)]',
+              'left-[calc(50%-135px)]',
+              'left-[calc(50%-67.5px)]',
+              'left-[calc(50%+67.5px)]'
+            ];
+            
+            return (
+              <div
+                key={`desktop-${index}`}
+                className={`absolute bottom-0 ${heights[index]} ${zIndexes[index]} ${positions[index]} w-[270px] rounded-t-xl overflow-hidden shadow-lg transform-gpu`}
+                style={{ willChange: 'transform' }}
+              >
+                <img
+                  src={imageUrl}
+                  alt={`Website inspiration ${index + 1}`}
+                  className="w-full h-full object-cover"
+                  loading={index < 3 ? "eager" : "lazy"}
+                  decoding="async"
+                />
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
