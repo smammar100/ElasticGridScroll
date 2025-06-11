@@ -7,7 +7,7 @@ import { AnimatedShinyTextDemo } from "@/components/ui/animated-shiny-text-demo"
 function Hero() {
   const [titleNumber, setTitleNumber] = useState(0);
   const titles = useMemo(
-    () => ["what works", "what wins", "what wows"],
+    () => ["by what works", " by what wins", "by what wows"],
     []
   );
 
@@ -32,7 +32,7 @@ function Hero() {
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl max-w-xs sm:max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-6xl tracking-tight text-center font-bold leading-tight text-text-primary">
               <span className="block sm:inline">The internet's best post, filtered</span>
               <span className="relative flex w-full justify-center overflow-hidden text-center md:pb-4 md:pt-1">
-                &nbsp; by
+                &nbsp; 
                 {titles.map((title, index) => (
                   <motion.span
                     key={index}
