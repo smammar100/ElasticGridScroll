@@ -10,29 +10,55 @@ gsap.registerPlugin(ScrollTrigger, ScrollSmoother);
 const baseLag = 0.2;
 const lagScale = 0.3;
 
-// Sample brand data for demonstration
-const brandData = [
-  { name: "Zenith", logo: "Z", color: "from-blue-500 to-purple-600" },
-  { name: "Nexus", logo: "N", color: "from-green-500 to-teal-600" },
-  { name: "Apex", logo: "A", color: "from-red-500 to-pink-600" },
-  { name: "Flux", logo: "F", color: "from-yellow-500 to-orange-600" },
-  { name: "Vortex", logo: "V", color: "from-indigo-500 to-blue-600" },
-  { name: "Echo", logo: "E", color: "from-purple-500 to-pink-600" },
-  { name: "Prism", logo: "P", color: "from-cyan-500 to-blue-600" },
-  { name: "Orbit", logo: "O", color: "from-emerald-500 to-green-600" },
-  { name: "Nova", logo: "N", color: "from-rose-500 to-red-600" },
-  { name: "Pulse", logo: "P", color: "from-violet-500 to-purple-600" },
-  { name: "Spark", logo: "S", color: "from-amber-500 to-yellow-600" },
-  { name: "Wave", logo: "W", color: "from-teal-500 to-cyan-600" },
-  { name: "Drift", logo: "D", color: "from-slate-500 to-gray-600" },
-  { name: "Shift", logo: "S", color: "from-lime-500 to-green-600" },
-  { name: "Bloom", logo: "B", color: "from-pink-500 to-rose-600" },
-  { name: "Glow", logo: "G", color: "from-orange-500 to-red-600" },
-  { name: "Flow", logo: "F", color: "from-sky-500 to-blue-600" },
-  { name: "Beam", logo: "B", color: "from-fuchsia-500 to-purple-600" },
-  { name: "Core", logo: "C", color: "from-emerald-500 to-teal-600" },
-  { name: "Edge", logo: "E", color: "from-indigo-500 to-violet-600" }
-];
+// Function to generate 100 dummy brand posts
+const generateDummyBrandData = (count: number = 100) => {
+  const brandNames = [
+    "Zenith", "Nexus", "Apex", "Flux", "Vortex", "Echo", "Prism", "Orbit", "Nova", "Pulse",
+    "Spark", "Wave", "Drift", "Shift", "Bloom", "Glow", "Flow", "Beam", "Core", "Edge",
+    "Pixel", "Mint", "Sage", "Onyx", "Ruby", "Azure", "Coral", "Ivory", "Slate", "Amber",
+    "Frost", "Storm", "Blaze", "Mist", "Dawn", "Dusk", "Rain", "Snow", "Wind", "Fire",
+    "Ocean", "River", "Mountain", "Valley", "Forest", "Desert", "Island", "Canyon", "Peak", "Shore",
+    "Digital", "Quantum", "Neural", "Cyber", "Tech", "Data", "Cloud", "Sync", "Link", "Node",
+    "Studio", "Agency", "Labs", "Works", "Group", "Co", "Inc", "Ltd", "Corp", "Team",
+    "Creative", "Design", "Build", "Make", "Craft", "Form", "Shape", "Style", "Brand", "Vision",
+    "Future", "Modern", "Urban", "Global", "Local", "Smart", "Pure", "Bold", "Bright", "Sharp",
+    "Swift", "Quick", "Fast", "Smooth", "Clean", "Fresh", "New", "Next", "Pro", "Plus"
+  ];
+
+  const colors = [
+    "from-blue-500 to-purple-600", "from-green-500 to-teal-600", "from-red-500 to-pink-600",
+    "from-yellow-500 to-orange-600", "from-indigo-500 to-blue-600", "from-purple-500 to-pink-600",
+    "from-cyan-500 to-blue-600", "from-emerald-500 to-green-600", "from-rose-500 to-red-600",
+    "from-violet-500 to-purple-600", "from-amber-500 to-yellow-600", "from-teal-500 to-cyan-600",
+    "from-slate-500 to-gray-600", "from-lime-500 to-green-600", "from-pink-500 to-rose-600",
+    "from-orange-500 to-red-600", "from-sky-500 to-blue-600", "from-fuchsia-500 to-purple-600",
+    "from-emerald-500 to-teal-600", "from-indigo-500 to-violet-600"
+  ];
+
+  const categories = [
+    "Design", "Development", "Marketing", "Business", "Technology", "Photography", "Art", "Fashion",
+    "Architecture", "Interior", "Branding", "UI/UX", "Web", "Mobile", "Print", "Digital",
+    "Creative", "Innovation", "Startup", "Agency"
+  ];
+
+  return Array.from({ length: count }, (_, i) => {
+    const brandName = brandNames[i % brandNames.length];
+    const suffix = i >= brandNames.length ? ` ${Math.floor(i / brandNames.length) + 1}` : '';
+    const fullName = `${brandName}${suffix}`;
+    
+    return {
+      name: fullName,
+      logo: fullName.charAt(0).toUpperCase(),
+      color: colors[i % colors.length],
+      category: categories[i % categories.length],
+      // Use a variety of Pexels images with different IDs
+      imageId: 18111088 + (i % 50) // Cycle through 50 different images
+    };
+  });
+};
+
+// Generate 100 dummy brand posts
+const brandData = generateDummyBrandData(100);
 
 function Grid() {
   const gridRef = useRef<HTMLDivElement>(null);
@@ -120,7 +146,7 @@ function Grid() {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `${brandName.toLowerCase()}-brand-image.jpg`;
+      link.download = `${brandName.toLowerCase().replace(/\s+/g, '-')}-brand-image.jpg`;
       
       document.body.appendChild(link);
       link.click();
@@ -183,7 +209,7 @@ function Grid() {
       className="grid demo-3 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 sm:py-12 md:py-16"
     >
       {brandData.map((brand, i) => {
-        const imageUrl = `https://images.pexels.com/photos/${18111088 + i}/pexels-photo-${18111088 + i}.jpeg`;
+        const imageUrl = `https://images.pexels.com/photos/${brand.imageId}/pexels-photo-${brand.imageId}.jpeg`;
         
         return (
           <figure key={i} className="grid__item group cursor-pointer">
@@ -194,7 +220,7 @@ function Grid() {
                 width={400}
                 height={400}
                 quality={80}
-                priority={i < 4} // Prioritize first 4 images
+                priority={i < 8} // Prioritize first 8 images for better performance
                 className="w-full h-full"
                 style={{ aspectRatio: '1/1' }}
               />
@@ -211,6 +237,13 @@ function Grid() {
                 <h3 className="text-white font-medium text-sm sm:text-base md:text-lg bg-black/60 px-3 py-1.5 rounded-lg backdrop-blur-sm">
                   {brand.name}
                 </h3>
+              </div>
+
+              {/* Category Badge - Top Right */}
+              <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10">
+                <span className="text-white text-xs sm:text-sm bg-white/20 px-2 py-1 rounded-full backdrop-blur-sm border border-white/30">
+                  {brand.category}
+                </span>
               </div>
 
               {/* Download Button */}
