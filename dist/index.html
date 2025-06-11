@@ -5,13 +5,49 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>React App</title>
     <meta name="description" content="Modern web application" />
-    <!-- Inter Font -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
+    
+    <!-- Preconnect to external domains for faster loading -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://images.pexels.com" crossorigin>
+    
+    <!-- Optimized Inter Font with font-display: swap -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Favicon -->
     <link rel="shortcut icon" href="/assets/favicon-wdEhh6Xj.ico" />
-    <script type="module" crossorigin src="/assets/index-C4woebgX.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-riCAmjzi.css">
+    
+    <!-- Critical CSS inlined for faster rendering -->
+    <style>
+      /* Critical above-the-fold styles */
+      body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-display: swap;
+        margin: 0;
+        background-color: #ffffff;
+        color: #222222;
+      }
+      
+      /* Loading state */
+      .loading-skeleton {
+        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: shimmer 2s infinite linear;
+      }
+      
+      @keyframes shimmer {
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
+      }
+      
+      /* Prevent layout shift */
+      img {
+        max-width: 100%;
+        height: auto;
+      }
+    </style>
+    <script type="module" crossorigin src="/assets/index-CmbnXEWR.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-WjBz0mHL.css">
   </head>
   <body>
     <div id="root"></div>
