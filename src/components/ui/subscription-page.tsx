@@ -19,12 +19,14 @@ const SubscriptionPage = () => {
       'https://images.pexels.com/photos/18111090/pexels-photo-18111090.jpeg',
       'https://images.pexels.com/photos/18111091/pexels-photo-18111091.jpeg',
       'https://images.pexels.com/photos/18111092/pexels-photo-18111092.jpeg',
+      'https://images.pexels.com/photos/18111093/pexels-photo-18111093.jpeg',
+      'https://images.pexels.com/photos/18111094/pexels-photo-18111094.jpeg',
     ];
 
     return {
       mobile: baseImages.slice(0, 3),
       tablet: baseImages.slice(0, 3),
-      desktop: baseImages
+      desktop: baseImages // Now includes 7 images
     };
   }, []);
 
@@ -144,20 +146,22 @@ const SubscriptionPage = () => {
           })}
         </div>
 
-        {/* Desktop Stack (5 images) */}
+        {/* Desktop Stack (7 images) */}
         <div className="hidden md:block">
           {imageData.desktop.map((imageUrl, index) => {
-            const heights = ['h-48', 'h-64', 'h-80', 'h-64', 'h-48'];
-            const zIndexes = ['z-10', 'z-20', 'z-30', 'z-20', 'z-10'];
+            const heights = ['h-40', 'h-48', 'h-64', 'h-80', 'h-64', 'h-48', 'h-40'];
+            const zIndexes = ['z-[5]', 'z-10', 'z-20', 'z-30', 'z-20', 'z-10', 'z-[5]'];
             const positions = [
+              'left-[calc(50%-472.5px)]', // Far left
               'left-[calc(50%-337.5px)]',
               'left-[calc(50%-202.5px)]',
-              'left-[calc(50%-135px)]',
+              'left-[calc(50%-135px)]',   // Center
               'left-[calc(50%-67.5px)]',
-              'left-[calc(50%+67.5px)]'
+              'left-[calc(50%+67.5px)]',
+              'left-[calc(50%+202.5px)]'  // Far right
             ];
             
-            const heightMap = { 'h-48': 192, 'h-64': 256, 'h-80': 320 };
+            const heightMap = { 'h-40': 160, 'h-48': 192, 'h-64': 256, 'h-80': 320 };
             const heightValue = heightMap[heights[index] as keyof typeof heightMap];
             
             return (
@@ -172,7 +176,7 @@ const SubscriptionPage = () => {
                   width={270}
                   height={heightValue}
                   quality={75}
-                  priority={index < 3}
+                  priority={index < 4} // Prioritize center images
                   className="w-full h-full"
                 />
               </div>
