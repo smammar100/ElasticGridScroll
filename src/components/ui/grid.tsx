@@ -232,11 +232,13 @@ function Grid() {
                 </div>
               </div>
 
-              {/* Brand Name */}
-              <div className="absolute top-14 left-3 sm:top-16 sm:left-4 md:top-18 md:left-4 z-10">
-                <h3 className="text-white font-medium text-sm sm:text-base md:text-lg bg-black/60 px-3 py-1.5 rounded-lg backdrop-blur-sm">
-                  {brand.brand_name}
-                </h3>
+              {/* Brand Name - More visible positioning */}
+              <div className="absolute bottom-12 left-3 right-3 sm:bottom-14 sm:left-4 sm:right-4 z-10">
+                <div className="bg-black/80 backdrop-blur-sm rounded-lg px-3 py-2 border border-white/20">
+                  <h3 className="text-white font-semibold text-sm sm:text-base md:text-lg text-center truncate">
+                    {brand.brand_name}
+                  </h3>
+                </div>
               </div>
 
               {/* Category Badge - Top Right */}
