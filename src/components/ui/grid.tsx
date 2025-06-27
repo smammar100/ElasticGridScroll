@@ -15,10 +15,10 @@ const lagScale = 0.3;
 interface BrandData {
   id: number;
   brand_name: string;
-  logo: string;
+  postImage: string; // This will be brand_post from Supabase
+  logoContent: string; // This will be brand_logo from Supabase
   color: string;
   category: string;
-  imageId: number;
 }
 
 // Color gradients for brand logos
@@ -30,6 +30,15 @@ const colors = [
   "from-slate-500 to-gray-600", "from-lime-500 to-green-600", "from-pink-500 to-rose-600",
   "from-orange-500 to-red-600", "from-sky-500 to-blue-600", "from-fuchsia-500 to-purple-600",
   "from-emerald-500 to-teal-600", "from-indigo-500 to-violet-600"
+];
+
+// Fallback images for when brand_post is null
+const fallbackImages = [
+  'https://images.pexels.com/photos/18111088/pexels-photo-18111088.jpeg',
+  'https://images.pexels.com/photos/18111089/pexels-photo-18111089.jpeg',
+  'https://images.pexels.com/photos/18111090/pexels-photo-18111090.jpeg',
+  'https://images.pexels.com/photos/18111091/pexels-photo-18111091.jpeg',
+  'https://images.pexels.com/photos/18111092/pexels-photo-18111092.jpeg',
 ];
 
 function Grid() {
@@ -53,7 +62,7 @@ function Grid() {
       
       const { data, error: supabaseError } = await supabase
         .from('Curatit')
-        .select('*')
+        .select('id, brand_name, brand_post, brand_logo, brand_category')
         .order('created_at', { ascending: false });
 
       if (supabaseError) {
@@ -67,10 +76,10 @@ function Grid() {
       const processedData: BrandData[] = (data || []).map((item: CuratitRecord, index: number) => ({
         id: item.id,
         brand_name: item.brand_name || `Brand ${item.id}`,
-        logo: (item.brand_name || `Brand ${item.id}`).charAt(0).toUpperCase(),
+        postImage: item.brand_post || fallbackImages[index % fallbackImages.length],
+        logoContent: item.brand_logo || (item.brand_name || `Brand ${item.id}`).charAt(0).toUpperCase(),
         color: colors[index % colors.length],
         category: item.brand_category || 'Uncategorized',
-        imageId: 18111088 + (index % 50) // Use variety of Pexels images
       }));
 
       console.log('Processed data:', processedData);
@@ -288,14 +297,12 @@ function Grid() {
       className="grid demo-3 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 sm:py-12 md:py-16"
     >
       {brandData.map((brand, i) => {
-        const imageUrl = `https://images.pexels.com/photos/${brand.imageId}/pexels-photo-${brand.imageId}.jpeg`;
-        
         return (
           <figure key={brand.id} className="grid__item group cursor-pointer">
             <div className="relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-105">
               <OptimizedImage
-                src={imageUrl}
-                alt={`${brand.brand_name} brand inspiration`}
+                src={brand.postImage}
+                alt={`${brand.brand_name} brand post`}
                 width={400}
                 height={400}
                 quality={80}
@@ -307,7 +314,18 @@ function Grid() {
               {/* Brand Logo - Top Left */}
               <div className="absolute top-3 left-3 sm:top-4 sm:left-4 z-10">
                 <div className={`w-9 h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-br ${brand.color} flex items-center justify-center shadow-lg`}>
-                  <span className="text-white font-semibold text-sm sm:text-base md:text-lg">{brand.logo}</span>
+                  {/* Check if logoContent is a URL (image) or text */}
+                  {brand.logoContent.startsWith('http') ? (
+                    <img 
+                      src={brand.logoContent} 
+                      alt={`${brand.brand_name} logo`}
+                      className="w-full h-full rounded-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-white font-semibold text-sm sm:text-base md:text-lg">
+                      {brand.logoContent}
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -331,7 +349,7 @@ function Grid() {
                   className="w-11 h-11 sm:w-12 sm:h-12 md:w-14 md:h-14 bg-white/95 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-110 group-hover:bg-text-primary group-hover:text-white disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
                   onClick={(e) => {
                     e.stopPropagation();
-                    downloadImage(imageUrl, brand.brand_name);
+                    downloadImage(brand.postImage, brand.brand_name);
                   }}
                   title={`Download ${brand.brand_name} image`}
                   aria-label={`Download ${brand.brand_name} image`}
