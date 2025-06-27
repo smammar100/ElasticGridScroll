@@ -1,6 +1,7 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import { Download } from 'lucide-react';
 import { OptimizedImage } from './optimized-image';
+import { supabase, type CuratitRecord } from '@/lib/supabase';
 import gsap from 'gsap';
 import ScrollTrigger from 'gsap/ScrollTrigger';
 import ScrollSmoother from 'gsap/ScrollSmoother';
@@ -10,61 +11,76 @@ gsap.registerPlugin(ScrollTrigger, ScrollSmoother);
 const baseLag = 0.2;
 const lagScale = 0.3;
 
-// Function to generate 100 dummy brand posts
-const generateDummyBrandData = (count: number = 100) => {
-  const brandNames = [
-    "Zenith", "Nexus", "Apex", "Flux", "Vortex", "Echo", "Prism", "Orbit", "Nova", "Pulse",
-    "Spark", "Wave", "Drift", "Shift", "Bloom", "Glow", "Flow", "Beam", "Core", "Edge",
-    "Pixel", "Mint", "Sage", "Onyx", "Ruby", "Azure", "Coral", "Ivory", "Slate", "Amber",
-    "Frost", "Storm", "Blaze", "Mist", "Dawn", "Dusk", "Rain", "Snow", "Wind", "Fire",
-    "Ocean", "River", "Mountain", "Valley", "Forest", "Desert", "Island", "Canyon", "Peak", "Shore",
-    "Digital", "Quantum", "Neural", "Cyber", "Tech", "Data", "Cloud", "Sync", "Link", "Node",
-    "Studio", "Agency", "Labs", "Works", "Group", "Co", "Inc", "Ltd", "Corp", "Team",
-    "Creative", "Design", "Build", "Make", "Craft", "Form", "Shape", "Style", "Brand", "Vision",
-    "Future", "Modern", "Urban", "Global", "Local", "Smart", "Pure", "Bold", "Bright", "Sharp",
-    "Swift", "Quick", "Fast", "Smooth", "Clean", "Fresh", "New", "Next", "Pro", "Plus"
-  ];
+// Interface for processed brand data
+interface BrandData {
+  id: number;
+  brand_name: string;
+  logo: string;
+  color: string;
+  category: string;
+  imageId: number;
+}
 
-  const colors = [
-    "from-blue-500 to-purple-600", "from-green-500 to-teal-600", "from-red-500 to-pink-600",
-    "from-yellow-500 to-orange-600", "from-indigo-500 to-blue-600", "from-purple-500 to-pink-600",
-    "from-cyan-500 to-blue-600", "from-emerald-500 to-green-600", "from-rose-500 to-red-600",
-    "from-violet-500 to-purple-600", "from-amber-500 to-yellow-600", "from-teal-500 to-cyan-600",
-    "from-slate-500 to-gray-600", "from-lime-500 to-green-600", "from-pink-500 to-rose-600",
-    "from-orange-500 to-red-600", "from-sky-500 to-blue-600", "from-fuchsia-500 to-purple-600",
-    "from-emerald-500 to-teal-600", "from-indigo-500 to-violet-600"
-  ];
-
-  const categories = [
-    "Design", "Development", "Marketing", "Business", "Technology", "Photography", "Art", "Fashion",
-    "Architecture", "Interior", "Branding", "UI/UX", "Web", "Mobile", "Print", "Digital",
-    "Creative", "Innovation", "Startup", "Agency"
-  ];
-
-  return Array.from({ length: count }, (_, i) => {
-    const brandName = brandNames[i % brandNames.length];
-    const suffix = i >= brandNames.length ? ` ${Math.floor(i / brandNames.length) + 1}` : '';
-    const fullName = `${brandName}${suffix}`;
-    
-    return {
-      brand_name: fullName,
-      logo: fullName.charAt(0).toUpperCase(),
-      color: colors[i % colors.length],
-      category: categories[i % categories.length],
-      // Use a variety of Pexels images with different IDs
-      imageId: 18111088 + (i % 50) // Cycle through 50 different images
-    };
-  });
-};
-
-// Generate 100 dummy brand posts
-const brandData = generateDummyBrandData(100);
+// Color gradients for brand logos
+const colors = [
+  "from-blue-500 to-purple-600", "from-green-500 to-teal-600", "from-red-500 to-pink-600",
+  "from-yellow-500 to-orange-600", "from-indigo-500 to-blue-600", "from-purple-500 to-pink-600",
+  "from-cyan-500 to-blue-600", "from-emerald-500 to-green-600", "from-rose-500 to-red-600",
+  "from-violet-500 to-purple-600", "from-amber-500 to-yellow-600", "from-teal-500 to-cyan-600",
+  "from-slate-500 to-gray-600", "from-lime-500 to-green-600", "from-pink-500 to-rose-600",
+  "from-orange-500 to-red-600", "from-sky-500 to-blue-600", "from-fuchsia-500 to-purple-600",
+  "from-emerald-500 to-teal-600", "from-indigo-500 to-violet-600"
+];
 
 function Grid() {
   const gridRef = useRef<HTMLDivElement>(null);
   const originalItemsRef = useRef<Element[]>([]);
   const currentColumnCountRef = useRef<number | null>(null);
   const smootherRef = useRef<any>(null);
+  
+  // State for Supabase data
+  const [brandData, setBrandData] = useState<BrandData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch data from Supabase
+  const fetchBrandData = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const { data, error: supabaseError } = await supabase
+        .from('Curatit')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (supabaseError) {
+        throw supabaseError;
+      }
+
+      // Process the data to match our component's expected format
+      const processedData: BrandData[] = (data || []).map((item: CuratitRecord, index: number) => ({
+        id: item.id,
+        brand_name: item.brand_name || `Brand ${item.id}`,
+        logo: (item.brand_name || `Brand ${item.id}`).charAt(0).toUpperCase(),
+        color: colors[index % colors.length],
+        category: item.brand_category || 'Uncategorized',
+        imageId: 18111088 + (index % 50) // Use variety of Pexels images
+      }));
+
+      setBrandData(processedData);
+    } catch (err) {
+      console.error('Error fetching brand data:', err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch brand data');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  // Fetch data on component mount
+  useEffect(() => {
+    fetchBrandData();
+  }, [fetchBrandData]);
 
   const getColumnCount = useCallback(() => {
     if (!gridRef.current) return 0;
@@ -168,7 +184,7 @@ function Grid() {
   }, []);
 
   useEffect(() => {
-    if (!gridRef.current) return;
+    if (!gridRef.current || brandData.length === 0) return;
     originalItemsRef.current = Array.from(gridRef.current.querySelectorAll('.grid__item'));
 
     // Initialize ScrollSmoother with optimized settings
@@ -201,7 +217,52 @@ function Grid() {
       window.removeEventListener('resize', debouncedResize);
       clearTimeout(resizeTimeout);
     };
-  }, [initGrid, getColumnCount]);
+  }, [initGrid, getColumnCount, brandData]);
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="grid demo-3 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 sm:py-12 md:py-16">
+        {Array.from({ length: 12 }).map((_, i) => (
+          <div key={i} className="grid__item">
+            <div className="relative overflow-hidden rounded-xl shadow-md">
+              <div className="w-full h-full bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-[length:200%_100%] animate-shiny-text" style={{ aspectRatio: '1/1' }} />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="grid demo-3 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 sm:py-12 md:py-16">
+        <div className="col-span-full flex flex-col items-center justify-center py-12">
+          <div className="text-red-600 text-lg font-medium mb-2">Failed to load brand data</div>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button
+            onClick={fetchBrandData}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Empty state
+  if (brandData.length === 0) {
+    return (
+      <div className="grid demo-3 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 sm:py-12 md:py-16">
+        <div className="col-span-full flex flex-col items-center justify-center py-12">
+          <div className="text-gray-600 text-lg font-medium mb-2">No brand data found</div>
+          <p className="text-gray-500">Add some brands to your Curatit table to see them here.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div 
@@ -212,7 +273,7 @@ function Grid() {
         const imageUrl = `https://images.pexels.com/photos/${brand.imageId}/pexels-photo-${brand.imageId}.jpeg`;
         
         return (
-          <figure key={i} className="grid__item group cursor-pointer">
+          <figure key={brand.id} className="grid__item group cursor-pointer">
             <div className="relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-105">
               <OptimizedImage
                 src={imageUrl}
