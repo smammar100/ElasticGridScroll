@@ -47,7 +47,7 @@ const generateDummyBrandData = (count: number = 100) => {
     const fullName = `${brandName}${suffix}`;
     
     return {
-      name: fullName,
+      brand_name: fullName,
       logo: fullName.charAt(0).toUpperCase(),
       color: colors[i % colors.length],
       category: categories[i % categories.length],
@@ -216,7 +216,7 @@ function Grid() {
             <div className="relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-105">
               <OptimizedImage
                 src={imageUrl}
-                alt={`${brand.name} brand inspiration`}
+                alt={`${brand.brand_name} brand inspiration`}
                 width={400}
                 height={400}
                 quality={80}
@@ -235,7 +235,7 @@ function Grid() {
               {/* Brand Name */}
               <div className="absolute top-14 left-3 sm:top-16 sm:left-4 md:top-18 md:left-4 z-10">
                 <h3 className="text-white font-medium text-sm sm:text-base md:text-lg bg-black/60 px-3 py-1.5 rounded-lg backdrop-blur-sm">
-                  {brand.name}
+                  {brand.brand_name}
                 </h3>
               </div>
 
@@ -252,10 +252,10 @@ function Grid() {
                   className="w-11 h-11 sm:w-12 sm:h-12 md:w-14 md:h-14 bg-white/95 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-110 group-hover:bg-text-primary group-hover:text-white disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
                   onClick={(e) => {
                     e.stopPropagation();
-                    downloadImage(imageUrl, brand.name);
+                    downloadImage(imageUrl, brand.brand_name);
                   }}
-                  title={`Download ${brand.name} image`}
-                  aria-label={`Download ${brand.name} image`}
+                  title={`Download ${brand.brand_name} image`}
+                  aria-label={`Download ${brand.brand_name} image`}
                 >
                   <Download size={16} className="text-text-secondary group-hover:text-white w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
