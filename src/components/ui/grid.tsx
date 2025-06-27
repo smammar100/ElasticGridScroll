@@ -49,14 +49,19 @@ function Grid() {
       setIsLoading(true);
       setError(null);
 
+      console.log('Fetching data from Supabase...');
+      
       const { data, error: supabaseError } = await supabase
         .from('Curatit')
         .select('*')
         .order('created_at', { ascending: false });
 
       if (supabaseError) {
+        console.error('Supabase error:', supabaseError);
         throw supabaseError;
       }
+
+      console.log('Fetched data:', data);
 
       // Process the data to match our component's expected format
       const processedData: BrandData[] = (data || []).map((item: CuratitRecord, index: number) => ({
@@ -68,6 +73,7 @@ function Grid() {
         imageId: 18111088 + (index % 50) // Use variety of Pexels images
       }));
 
+      console.log('Processed data:', processedData);
       setBrandData(processedData);
     } catch (err) {
       console.error('Error fetching brand data:', err);
@@ -185,18 +191,24 @@ function Grid() {
 
   useEffect(() => {
     if (!gridRef.current || brandData.length === 0) return;
-    originalItemsRef.current = Array.from(gridRef.current.querySelectorAll('.grid__item'));
+    
+    // Wait for next tick to ensure DOM is updated
+    setTimeout(() => {
+      if (gridRef.current) {
+        originalItemsRef.current = Array.from(gridRef.current.querySelectorAll('.grid__item'));
 
-    // Initialize ScrollSmoother with optimized settings
-    if (!smootherRef.current) {
-      smootherRef.current = ScrollSmoother.create({
-        smooth: 0.6, // Reduced for better performance
-        effects: true,
-        normalizeScroll: true,
-      });
-    }
+        // Initialize ScrollSmoother with optimized settings
+        if (!smootherRef.current) {
+          smootherRef.current = ScrollSmoother.create({
+            smooth: 0.6, // Reduced for better performance
+            effects: true,
+            normalizeScroll: true,
+          });
+        }
 
-    initGrid();
+        initGrid();
+      }
+    }, 0);
 
     const handleResize = () => {
       const newColumnCount = getColumnCount();
@@ -258,7 +270,13 @@ function Grid() {
       <div className="grid demo-3 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 sm:py-12 md:py-16">
         <div className="col-span-full flex flex-col items-center justify-center py-12">
           <div className="text-gray-600 text-lg font-medium mb-2">No brand data found</div>
-          <p className="text-gray-500">Add some brands to your Curatit table to see them here.</p>
+          <p className="text-gray-500 mb-4">Add some brands to your Curatit table to see them here.</p>
+          <button
+            onClick={fetchBrandData}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Refresh Data
+          </button>
         </div>
       </div>
     );
