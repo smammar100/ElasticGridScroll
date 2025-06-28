@@ -141,26 +141,11 @@ export const DebugPanel: React.FC<DebugPanelProps> = ({ onDataFetched }) => {
         };
       }
 
-      // 6. Check RLS policies
-      console.log('🔍 Step 6: Checking RLS status...');
-      try {
-        const { data: rlsData, error: rlsError } = await supabase
-          .rpc('check_table_rls', { table_name: 'Curatit' })
-          .single();
-        
-        results.tableInfo.rls = {
-          success: !rlsError,
-          error: rlsError?.message,
-          data: rlsData
-        };
-      } catch (err) {
-        // RLS check might not be available, that's okay
-        results.tableInfo.rls = {
-          success: false,
-          error: 'RLS check function not available',
-          note: 'This is normal - RLS check requires custom function'
-        };
-      }
+      // Note: RLS check removed as it requires a custom function that doesn't exist
+      results.tableInfo.rls = {
+        success: false,
+        note: 'RLS check skipped - requires custom database function'
+      };
 
     } catch (globalError) {
       results.errors.push(`Global error: ${globalError}`);
@@ -229,6 +214,7 @@ export const DebugPanel: React.FC<DebugPanelProps> = ({ onDataFetched }) => {
               <div className="bg-gray-50 p-2 rounded text-xs">
                 <div>Total Rows: {debugInfo.tableInfo?.totalRows ?? 'Unknown'}</div>
                 <div>Schema Access: {debugInfo.tableInfo?.schemaAccessible ? '✅' : '❌'}</div>
+                <div>RLS Status: {debugInfo.tableInfo?.rls?.note || 'Unknown'}</div>
               </div>
             </div>
 
