@@ -1,7 +1,7 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
-import { Download } from 'lucide-react';
+import { Download, RefreshCw, AlertCircle } from 'lucide-react';
 import { OptimizedImage } from './optimized-image';
-import { supabase, type CuratitRecord } from '@/lib/supabase';
+import { supabase, testSupabaseConnection, type CuratitRecord } from '@/lib/supabase';
 import gsap from 'gsap';
 import ScrollTrigger from 'gsap/ScrollTrigger';
 import ScrollSmoother from 'gsap/ScrollSmoother';
@@ -34,11 +34,11 @@ const colors = [
 
 // Fallback images for when brand_post is null
 const fallbackImages = [
-  'https://images.pexels.com/photos/18111088/pexels-photo-18111088.jpeg',
-  'https://images.pexels.com/photos/18111089/pexels-photo-18111089.jpeg',
-  'https://images.pexels.com/photos/18111090/pexels-photo-18111090.jpeg',
-  'https://images.pexels.com/photos/18111091/pexels-photo-18111091.jpeg',
-  'https://images.pexels.com/photos/18111092/pexels-photo-18111092.jpeg',
+  'https://images.pexels.com/photos/18111088/pexels-photo-18111088.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&dpr=1',
+  'https://images.pexels.com/photos/18111089/pexels-photo-18111089.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&dpr=1',
+  'https://images.pexels.com/photos/18111090/pexels-photo-18111090.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&dpr=1',
+  'https://images.pexels.com/photos/18111091/pexels-photo-18111091.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&dpr=1',
+  'https://images.pexels.com/photos/18111092/pexels-photo-18111092.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&dpr=1',
 ];
 
 function Grid() {
@@ -51,6 +51,26 @@ function Grid() {
   const [brandData, setBrandData] = useState<BrandData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [connectionStatus, setConnectionStatus] = useState<'testing' | 'connected' | 'failed'>('testing');
+
+  // Test Supabase connection on mount
+  useEffect(() => {
+    const testConnection = async () => {
+      console.log('🔍 Testing Supabase connection...');
+      const result = await testSupabaseConnection();
+      
+      if (result.success) {
+        console.log('✅ Supabase connection successful');
+        setConnectionStatus('connected');
+      } else {
+        console.error('❌ Supabase connection failed:', result.error);
+        setConnectionStatus('failed');
+        setError(`Connection failed: ${result.error}`);
+      }
+    };
+
+    testConnection();
+  }, []);
 
   // Fetch data from Supabase
   const fetchBrandData = useCallback(async () => {
@@ -58,44 +78,73 @@ function Grid() {
       setIsLoading(true);
       setError(null);
 
-      console.log('Fetching data from Supabase...');
+      console.log('📡 Fetching data from Supabase...');
       
-      const { data, error: supabaseError } = await supabase
+      // First, let's check if we can access the table at all
+      const { data: tableData, error: tableError, count } = await supabase
         .from('Curatit')
-        .select('id, brand_name, brand_post, brand_logo, brand_category')
+        .select('*', { count: 'exact' })
         .order('created_at', { ascending: false });
 
-      if (supabaseError) {
-        console.error('Supabase error:', supabaseError);
-        throw supabaseError;
+      console.log('📊 Raw Supabase response:', {
+        data: tableData,
+        error: tableError,
+        count,
+        dataLength: tableData?.length || 0
+      });
+
+      if (tableError) {
+        console.error('❌ Supabase query error:', tableError);
+        throw new Error(`Database error: ${tableError.message}`);
       }
 
-      console.log('Fetched data:', data);
+      if (!tableData || tableData.length === 0) {
+        console.warn('⚠️ No data found in Curatit table');
+        setBrandData([]);
+        return;
+      }
+
+      console.log('✅ Successfully fetched', tableData.length, 'records');
 
       // Process the data to match our component's expected format
-      const processedData: BrandData[] = (data || []).map((item: CuratitRecord, index: number) => ({
-        id: item.id,
-        brand_name: item.brand_name || `Brand ${item.id}`,
-        postImage: item.brand_post || fallbackImages[index % fallbackImages.length],
-        logoContent: item.brand_logo || (item.brand_name || `Brand ${item.id}`).charAt(0).toUpperCase(),
-        color: colors[index % colors.length],
-        category: item.brand_category || 'Uncategorized',
-      }));
+      const processedData: BrandData[] = tableData.map((item: CuratitRecord, index: number) => {
+        const brandName = item.brand_name?.trim() || `Brand ${item.id}`;
+        const postImage = item.brand_post?.trim() || fallbackImages[index % fallbackImages.length];
+        const logoContent = item.brand_logo?.trim() || brandName.charAt(0).toUpperCase();
+        const category = item.brand_category?.trim() || 'Uncategorized';
 
-      console.log('Processed data:', processedData);
+        console.log(`🏷️ Processing item ${item.id}:`, {
+          original: item,
+          processed: { brandName, postImage, logoContent, category }
+        });
+
+        return {
+          id: item.id,
+          brand_name: brandName,
+          postImage,
+          logoContent,
+          color: colors[index % colors.length],
+          category,
+        };
+      });
+
+      console.log('🎨 Final processed data:', processedData);
       setBrandData(processedData);
     } catch (err) {
-      console.error('Error fetching brand data:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch brand data');
+      console.error('💥 Error fetching brand data:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch brand data';
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  // Fetch data on component mount
+  // Fetch data when connection is established
   useEffect(() => {
-    fetchBrandData();
-  }, [fetchBrandData]);
+    if (connectionStatus === 'connected') {
+      fetchBrandData();
+    }
+  }, [connectionStatus, fetchBrandData]);
 
   const getColumnCount = useCallback(() => {
     if (!gridRef.current) return 0;
@@ -240,6 +289,47 @@ function Grid() {
     };
   }, [initGrid, getColumnCount, brandData]);
 
+  // Connection testing state
+  if (connectionStatus === 'testing') {
+    return (
+      <div className="grid demo-3 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 sm:py-12 md:py-16">
+        <div className="col-span-full flex flex-col items-center justify-center py-12">
+          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+          <div className="text-lg font-medium mb-2">Testing Supabase Connection...</div>
+          <p className="text-gray-600">Please wait while we verify your database connection.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Connection failed state
+  if (connectionStatus === 'failed') {
+    return (
+      <div className="grid demo-3 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 sm:py-12 md:py-16">
+        <div className="col-span-full flex flex-col items-center justify-center py-12">
+          <AlertCircle className="w-12 h-12 text-red-600 mb-4" />
+          <div className="text-red-600 text-lg font-medium mb-2">Database Connection Failed</div>
+          <p className="text-gray-600 mb-4 text-center max-w-md">{error}</p>
+          <div className="space-y-2 text-sm text-gray-500 mb-4">
+            <p>• Check your .env file contains VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY</p>
+            <p>• Verify your Supabase project is active</p>
+            <p>• Check Row Level Security policies on your Curatit table</p>
+          </div>
+          <button
+            onClick={() => {
+              setConnectionStatus('testing');
+              window.location.reload();
+            }}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Retry Connection
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   // Loading state
   if (isLoading) {
     return (
@@ -260,12 +350,14 @@ function Grid() {
     return (
       <div className="grid demo-3 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 sm:py-12 md:py-16">
         <div className="col-span-full flex flex-col items-center justify-center py-12">
+          <AlertCircle className="w-12 h-12 text-red-600 mb-4" />
           <div className="text-red-600 text-lg font-medium mb-2">Failed to load brand data</div>
-          <p className="text-gray-600 mb-4">{error}</p>
+          <p className="text-gray-600 mb-4 text-center max-w-md">{error}</p>
           <button
             onClick={fetchBrandData}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
           >
+            <RefreshCw className="w-4 h-4" />
             Try Again
           </button>
         </div>
@@ -279,11 +371,14 @@ function Grid() {
       <div className="grid demo-3 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 sm:py-12 md:py-16">
         <div className="col-span-full flex flex-col items-center justify-center py-12">
           <div className="text-gray-600 text-lg font-medium mb-2">No brand data found</div>
-          <p className="text-gray-500 mb-4">Add some brands to your Curatit table to see them here.</p>
+          <p className="text-gray-500 mb-4 text-center max-w-md">
+            Your Curatit table appears to be empty. Add some brands to see them here.
+          </p>
           <button
             onClick={fetchBrandData}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
           >
+            <RefreshCw className="w-4 h-4" />
             Refresh Data
           </button>
         </div>
