@@ -1,6 +1,7 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { Download, RefreshCw, AlertCircle } from 'lucide-react';
 import { OptimizedImage } from './optimized-image';
+import { DebugPanel } from './debug-panel';
 import { supabase, testSupabaseConnection, type CuratitRecord } from '@/lib/supabase';
 import gsap from 'gsap';
 import ScrollTrigger from 'gsap/ScrollTrigger';
@@ -52,6 +53,7 @@ function Grid() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<'testing' | 'connected' | 'failed'>('testing');
+  const [debugData, setDebugData] = useState<any[]>([]);
 
   // Test Supabase connection on mount
   useEffect(() => {
@@ -72,6 +74,36 @@ function Grid() {
     testConnection();
   }, []);
 
+  // Handle debug data from debug panel
+  const handleDebugDataFetched = useCallback((data: any[]) => {
+    console.log('🐛 Debug panel fetched data:', data);
+    setDebugData(data);
+    
+    if (data && data.length > 0) {
+      // Process the debug data and set it as brand data
+      const processedData: BrandData[] = data.map((item: CuratitRecord, index: number) => {
+        const brandName = item.brand_name?.trim() || `Brand ${item.id}`;
+        const postImage = item.brand_post?.trim() || fallbackImages[index % fallbackImages.length];
+        const logoContent = item.brand_logo?.trim() || brandName.charAt(0).toUpperCase();
+        const category = item.brand_category?.trim() || 'Uncategorized';
+
+        return {
+          id: item.id,
+          brand_name: brandName,
+          postImage,
+          logoContent,
+          color: colors[index % colors.length],
+          category,
+        };
+      });
+
+      console.log('🎨 Setting brand data from debug panel:', processedData);
+      setBrandData(processedData);
+      setIsLoading(false);
+      setError(null);
+    }
+  }, []);
+
   // Fetch data from Supabase
   const fetchBrandData = useCallback(async () => {
     try {
@@ -79,35 +111,72 @@ function Grid() {
       setError(null);
 
       console.log('📡 Fetching data from Supabase...');
-      
-      // First, let's check if we can access the table at all
-      const { data: tableData, error: tableError, count } = await supabase
-        .from('Curatit')
-        .select('*', { count: 'exact' })
-        .order('created_at', { ascending: false });
-
-      console.log('📊 Raw Supabase response:', {
-        data: tableData,
-        error: tableError,
-        count,
-        dataLength: tableData?.length || 0
+      console.log('📡 Environment check:', {
+        url: import.meta.env.VITE_SUPABASE_URL ? 'SET' : 'MISSING',
+        key: import.meta.env.VITE_SUPABASE_ANON_KEY ? 'SET' : 'MISSING'
       });
+      
+      // Try multiple approaches to get data
+      const approaches = [
+        // Approach 1: Simple select all
+        () => supabase.from('Curatit').select('*'),
+        
+        // Approach 2: Select specific columns
+        () => supabase.from('Curatit').select('id, brand_name, brand_post, brand_logo, brand_category, created_at'),
+        
+        // Approach 3: Select with order
+        () => supabase.from('Curatit').select('*').order('created_at', { ascending: false }),
+        
+        // Approach 4: Select with limit
+        () => supabase.from('Curatit').select('*').limit(10)
+      ];
 
-      if (tableError) {
-        console.error('❌ Supabase query error:', tableError);
-        throw new Error(`Database error: ${tableError.message}`);
+      let successfulData = null;
+      let lastError = null;
+
+      for (let i = 0; i < approaches.length; i++) {
+        try {
+          console.log(`📡 Trying approach ${i + 1}...`);
+          const { data, error, count } = await approaches[i]();
+          
+          console.log(`📊 Approach ${i + 1} result:`, {
+            data,
+            error,
+            count,
+            dataLength: data?.length || 0
+          });
+
+          if (error) {
+            console.error(`❌ Approach ${i + 1} failed:`, error);
+            lastError = error;
+            continue;
+          }
+
+          if (data && data.length > 0) {
+            console.log(`✅ Approach ${i + 1} successful! Found ${data.length} records`);
+            successfulData = data;
+            break;
+          } else {
+            console.warn(`⚠️ Approach ${i + 1} returned no data`);
+          }
+        } catch (err) {
+          console.error(`💥 Approach ${i + 1} threw exception:`, err);
+          lastError = err;
+        }
       }
 
-      if (!tableData || tableData.length === 0) {
-        console.warn('⚠️ No data found in Curatit table');
-        setBrandData([]);
-        return;
+      if (!successfulData) {
+        if (lastError) {
+          throw new Error(`All query approaches failed. Last error: ${lastError.message || lastError}`);
+        } else {
+          throw new Error('No data found in any query approach');
+        }
       }
 
-      console.log('✅ Successfully fetched', tableData.length, 'records');
+      console.log('✅ Successfully fetched', successfulData.length, 'records');
 
       // Process the data to match our component's expected format
-      const processedData: BrandData[] = tableData.map((item: CuratitRecord, index: number) => {
+      const processedData: BrandData[] = successfulData.map((item: CuratitRecord, index: number) => {
         const brandName = item.brand_name?.trim() || `Brand ${item.id}`;
         const postImage = item.brand_post?.trim() || fallbackImages[index % fallbackImages.length];
         const logoContent = item.brand_logo?.trim() || brandName.charAt(0).toUpperCase();
@@ -292,174 +361,195 @@ function Grid() {
   // Connection testing state
   if (connectionStatus === 'testing') {
     return (
-      <div className="grid demo-3 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 sm:py-12 md:py-16">
-        <div className="col-span-full flex flex-col items-center justify-center py-12">
-          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-          <div className="text-lg font-medium mb-2">Testing Supabase Connection...</div>
-          <p className="text-gray-600">Please wait while we verify your database connection.</p>
+      <>
+        <div className="grid demo-3 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 sm:py-12 md:py-16">
+          <div className="col-span-full flex flex-col items-center justify-center py-12">
+            <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+            <div className="text-lg font-medium mb-2">Testing Supabase Connection...</div>
+            <p className="text-gray-600">Please wait while we verify your database connection.</p>
+          </div>
         </div>
-      </div>
+        <DebugPanel onDataFetched={handleDebugDataFetched} />
+      </>
     );
   }
 
   // Connection failed state
   if (connectionStatus === 'failed') {
     return (
-      <div className="grid demo-3 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 sm:py-12 md:py-16">
-        <div className="col-span-full flex flex-col items-center justify-center py-12">
-          <AlertCircle className="w-12 h-12 text-red-600 mb-4" />
-          <div className="text-red-600 text-lg font-medium mb-2">Database Connection Failed</div>
-          <p className="text-gray-600 mb-4 text-center max-w-md">{error}</p>
-          <div className="space-y-2 text-sm text-gray-500 mb-4">
-            <p>• Check your .env file contains VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY</p>
-            <p>• Verify your Supabase project is active</p>
-            <p>• Check Row Level Security policies on your Curatit table</p>
+      <>
+        <div className="grid demo-3 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 sm:py-12 md:py-16">
+          <div className="col-span-full flex flex-col items-center justify-center py-12">
+            <AlertCircle className="w-12 h-12 text-red-600 mb-4" />
+            <div className="text-red-600 text-lg font-medium mb-2">Database Connection Failed</div>
+            <p className="text-gray-600 mb-4 text-center max-w-md">{error}</p>
+            <div className="space-y-2 text-sm text-gray-500 mb-4">
+              <p>• Check your .env file contains VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY</p>
+              <p>• Verify your Supabase project is active</p>
+              <p>• Check Row Level Security policies on your Curatit table</p>
+            </div>
+            <button
+              onClick={() => {
+                setConnectionStatus('testing');
+                window.location.reload();
+              }}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Retry Connection
+            </button>
           </div>
-          <button
-            onClick={() => {
-              setConnectionStatus('testing');
-              window.location.reload();
-            }}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-          >
-            <RefreshCw className="w-4 h-4" />
-            Retry Connection
-          </button>
         </div>
-      </div>
+        <DebugPanel onDataFetched={handleDebugDataFetched} />
+      </>
     );
   }
 
   // Loading state
   if (isLoading) {
     return (
-      <div className="grid demo-3 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 sm:py-12 md:py-16">
-        {Array.from({ length: 12 }).map((_, i) => (
-          <div key={i} className="grid__item">
-            <div className="relative overflow-hidden rounded-xl shadow-md">
-              <div className="w-full h-full bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-[length:200%_100%] animate-shiny-text" style={{ aspectRatio: '1/1' }} />
+      <>
+        <div className="grid demo-3 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 sm:py-12 md:py-16">
+          {Array.from({ length: 12 }).map((_, i) => (
+            <div key={i} className="grid__item">
+              <div className="relative overflow-hidden rounded-xl shadow-md">
+                <div className="w-full h-full bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-[length:200%_100%] animate-shiny-text" style={{ aspectRatio: '1/1' }} />
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+        <DebugPanel onDataFetched={handleDebugDataFetched} />
+      </>
     );
   }
 
   // Error state
   if (error) {
     return (
-      <div className="grid demo-3 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 sm:py-12 md:py-16">
-        <div className="col-span-full flex flex-col items-center justify-center py-12">
-          <AlertCircle className="w-12 h-12 text-red-600 mb-4" />
-          <div className="text-red-600 text-lg font-medium mb-2">Failed to load brand data</div>
-          <p className="text-gray-600 mb-4 text-center max-w-md">{error}</p>
-          <button
-            onClick={fetchBrandData}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-          >
-            <RefreshCw className="w-4 h-4" />
-            Try Again
-          </button>
+      <>
+        <div className="grid demo-3 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 sm:py-12 md:py-16">
+          <div className="col-span-full flex flex-col items-center justify-center py-12">
+            <AlertCircle className="w-12 h-12 text-red-600 mb-4" />
+            <div className="text-red-600 text-lg font-medium mb-2">Failed to load brand data</div>
+            <p className="text-gray-600 mb-4 text-center max-w-md">{error}</p>
+            <button
+              onClick={fetchBrandData}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Try Again
+            </button>
+          </div>
         </div>
-      </div>
+        <DebugPanel onDataFetched={handleDebugDataFetched} />
+      </>
     );
   }
 
   // Empty state
   if (brandData.length === 0) {
     return (
-      <div className="grid demo-3 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 sm:py-12 md:py-16">
-        <div className="col-span-full flex flex-col items-center justify-center py-12">
-          <div className="text-gray-600 text-lg font-medium mb-2">No brand data found</div>
-          <p className="text-gray-500 mb-4 text-center max-w-md">
-            Your Curatit table appears to be empty. Add some brands to see them here.
-          </p>
-          <button
-            onClick={fetchBrandData}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-          >
-            <RefreshCw className="w-4 h-4" />
-            Refresh Data
-          </button>
+      <>
+        <div className="grid demo-3 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 sm:py-12 md:py-16">
+          <div className="col-span-full flex flex-col items-center justify-center py-12">
+            <div className="text-gray-600 text-lg font-medium mb-2">No brand data found</div>
+            <p className="text-gray-500 mb-4 text-center max-w-md">
+              Your Curatit table appears to be empty. Add some brands to see them here.
+            </p>
+            <div className="text-sm text-gray-400 mb-4">
+              Debug data: {debugData.length} records found
+            </div>
+            <button
+              onClick={fetchBrandData}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Refresh Data
+            </button>
+          </div>
         </div>
-      </div>
+        <DebugPanel onDataFetched={handleDebugDataFetched} />
+      </>
     );
   }
 
   return (
-    <div 
-      ref={gridRef} 
-      className="grid demo-3 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 sm:py-12 md:py-16"
-    >
-      {brandData.map((brand, i) => {
-        return (
-          <figure key={brand.id} className="grid__item group cursor-pointer">
-            <div className="relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-              <OptimizedImage
-                src={brand.postImage}
-                alt={`${brand.brand_name} brand post`}
-                width={400}
-                height={400}
-                quality={80}
-                priority={i < 8} // Prioritize first 8 images for better performance
-                className="w-full h-full"
-                style={{ aspectRatio: '1/1' }}
-              />
+    <>
+      <div 
+        ref={gridRef} 
+        className="grid demo-3 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 sm:py-12 md:py-16"
+      >
+        {brandData.map((brand, i) => {
+          return (
+            <figure key={brand.id} className="grid__item group cursor-pointer">
+              <div className="relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+                <OptimizedImage
+                  src={brand.postImage}
+                  alt={`${brand.brand_name} brand post`}
+                  width={400}
+                  height={400}
+                  quality={80}
+                  priority={i < 8} // Prioritize first 8 images for better performance
+                  className="w-full h-full"
+                  style={{ aspectRatio: '1/1' }}
+                />
 
-              {/* Brand Logo - Top Left */}
-              <div className="absolute top-3 left-3 sm:top-4 sm:left-4 z-10">
-                <div className={`w-9 h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-br ${brand.color} flex items-center justify-center shadow-lg`}>
-                  {/* Check if logoContent is a URL (image) or text */}
-                  {brand.logoContent.startsWith('http') ? (
-                    <img 
-                      src={brand.logoContent} 
-                      alt={`${brand.brand_name} logo`}
-                      className="w-full h-full rounded-full object-cover"
-                    />
-                  ) : (
-                    <span className="text-white font-semibold text-sm sm:text-base md:text-lg">
-                      {brand.logoContent}
-                    </span>
-                  )}
+                {/* Brand Logo - Top Left */}
+                <div className="absolute top-3 left-3 sm:top-4 sm:left-4 z-10">
+                  <div className={`w-9 h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-br ${brand.color} flex items-center justify-center shadow-lg`}>
+                    {/* Check if logoContent is a URL (image) or text */}
+                    {brand.logoContent.startsWith('http') ? (
+                      <img 
+                        src={brand.logoContent} 
+                        alt={`${brand.brand_name} logo`}
+                        className="w-full h-full rounded-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-white font-semibold text-sm sm:text-base md:text-lg">
+                        {brand.logoContent}
+                      </span>
+                    )}
+                  </div>
                 </div>
-              </div>
 
-              {/* Brand Name */}
-              <div className="absolute top-14 left-3 sm:top-16 sm:left-4 md:top-18 md:left-4 z-10">
-                <h3 className="text-white font-medium text-sm sm:text-base md:text-lg bg-black/60 px-3 py-1.5 rounded-lg backdrop-blur-sm">
-                  {brand.brand_name}
-                </h3>
-              </div>
+                {/* Brand Name */}
+                <div className="absolute top-14 left-3 sm:top-16 sm:left-4 md:top-18 md:left-4 z-10">
+                  <h3 className="text-white font-medium text-sm sm:text-base md:text-lg bg-black/60 px-3 py-1.5 rounded-lg backdrop-blur-sm">
+                    {brand.brand_name}
+                  </h3>
+                </div>
 
-              {/* Category Badge - Top Right */}
-              <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10">
-                <span className="text-white text-xs sm:text-sm bg-white/20 px-2 py-1 rounded-full backdrop-blur-sm border border-white/30">
-                  {brand.category}
-                </span>
-              </div>
+                {/* Category Badge - Top Right */}
+                <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10">
+                  <span className="text-white text-xs sm:text-sm bg-white/20 px-2 py-1 rounded-full backdrop-blur-sm border border-white/30">
+                    {brand.category}
+                  </span>
+                </div>
 
-              {/* Download Button */}
-              <div className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 z-10">
-                <button 
-                  className="w-11 h-11 sm:w-12 sm:h-12 md:w-14 md:h-14 bg-white/95 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-110 group-hover:bg-text-primary group-hover:text-white disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    downloadImage(brand.postImage, brand.brand_name);
-                  }}
-                  title={`Download ${brand.brand_name} image`}
-                  aria-label={`Download ${brand.brand_name} image`}
-                >
-                  <Download size={16} className="text-text-secondary group-hover:text-white w-4 h-4 sm:w-5 sm:h-5" />
-                </button>
-              </div>
+                {/* Download Button */}
+                <div className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 z-10">
+                  <button 
+                    className="w-11 h-11 sm:w-12 sm:h-12 md:w-14 md:h-14 bg-white/95 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-110 group-hover:bg-text-primary group-hover:text-white disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      downloadImage(brand.postImage, brand.brand_name);
+                    }}
+                    title={`Download ${brand.brand_name} image`}
+                    aria-label={`Download ${brand.brand_name} image`}
+                  >
+                    <Download size={16} className="text-text-secondary group-hover:text-white w-4 h-4 sm:w-5 sm:h-5" />
+                  </button>
+                </div>
 
-              {/* Overlay for better text readability */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20 rounded-xl"></div>
-            </div>
-          </figure>
-        );
-      })}
-    </div>
+                {/* Overlay for better text readability */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20 rounded-xl"></div>
+              </div>
+            </figure>
+          );
+        })}
+      </div>
+      <DebugPanel onDataFetched={handleDebugDataFetched} />
+    </>
   );
 }
 
