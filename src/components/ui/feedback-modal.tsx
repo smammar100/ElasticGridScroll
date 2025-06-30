@@ -4,6 +4,7 @@ import * as RadioGroup from "@radix-ui/react-radio-group";
 import * as Select from "@radix-ui/react-select";
 import { X, ChevronDown } from "lucide-react";
 import { createPortal } from "react-dom";
+import { useState } from "react";
 
 interface FeedbackModalProps {
   isOpen: boolean;
@@ -20,6 +21,50 @@ const roles = [
 
 const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose }) => {
   const modalRoot = document.getElementById('modal-root');
+
+  // Form state
+  const [selectedRole, setSelectedRole] = useState<string>("");
+  const [feedbackText, setFeedbackText] = useState<string>("");
+  const [brandSuggestion, setBrandSuggestion] = useState<string>("");
+  const [rating, setRating] = useState<string>("");
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Construct email body
+    const emailBody = `
+Curatit Feedback Submission
+==========================
+
+Role: ${selectedRole || 'Not specified'}
+
+What could Curatit do better?
+${feedbackText || 'No feedback provided'}
+
+Brand Suggestion:
+${brandSuggestion || 'No brand suggested'}
+
+Experience Rating: ${rating || 'Not rated'}/5
+
+---
+Submitted on: ${new Date().toLocaleString()}
+    `.trim();
+
+    // Create mailto URL
+    const subject = encodeURIComponent('Curatit Feedback');
+    const body = encodeURIComponent(emailBody);
+    const mailtoUrl = `mailto:syed.m.ammar@hotmail.com?subject=${subject}&body=${body}`;
+
+    // Open email client
+    window.location.href = mailtoUrl;
+
+    // Reset form and close modal
+    setSelectedRole("");
+    setFeedbackText("");
+    setBrandSuggestion("");
+    setRating("");
+    onClose();
+  };
 
   if (!modalRoot) return null;
 
@@ -57,12 +102,12 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose }) => {
                       </Dialog.Close>
                     </div>
 
-                    <form className="space-y-6 sm:space-y-8">
+                    <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
                       <div>
                         <label className="block text-base sm:text-lg font-medium mb-3 text-text-primary">
                           What best describes your role?
                         </label>
-                        <Select.Root>
+                        <Select.Root value={selectedRole} onValueChange={setSelectedRole}>
                           <Select.Trigger className="w-full px-4 sm:px-5 py-4 sm:py-5 border border-gray-200 rounded-xl text-base sm:text-lg min-h-[52px] flex items-center justify-between touch-manipulation hover:border-gray-300 transition-colors font-normal text-text-primary">
                             <Select.Value placeholder="Select your role" />
                             <ChevronDown className="h-5 w-5 opacity-50" />
@@ -90,6 +135,8 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose }) => {
                           What's one thing you wish Curatit did better?
                         </label>
                         <textarea
+                          value={feedbackText}
+                          onChange={(e) => setFeedbackText(e.target.value)}
                           className="w-full px-4 sm:px-5 py-4 sm:py-5 border border-gray-200 rounded-xl h-24 sm:h-28 md:h-32 resize-none text-base sm:text-lg touch-manipulation hover:border-gray-300 transition-colors font-normal text-text-primary"
                           placeholder="Share your thoughts..."
                         />
@@ -101,6 +148,8 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose }) => {
                         </label>
                         <input
                           type="text"
+                          value={brandSuggestion}
+                          onChange={(e) => setBrandSuggestion(e.target.value)}
                           className="w-full px-4 sm:px-5 py-4 sm:py-5 border border-gray-200 rounded-xl text-base sm:text-lg min-h-[52px] touch-manipulation hover:border-gray-300 transition-colors font-normal text-text-primary"
                           placeholder="e.g., Notion, Figma, Liquid Death, Monzo, Glossier"
                         />
@@ -110,7 +159,7 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose }) => {
                         <label className="block text-base sm:text-lg font-medium mb-3 text-text-primary">
                           How would you rate your experience so far?
                         </label>
-                        <RadioGroup.Root className="flex gap-3 sm:gap-4 flex-wrap">
+                        <RadioGroup.Root value={rating} onValueChange={setRating} className="flex gap-3 sm:gap-4 flex-wrap">
                           {[1, 2, 3, 4, 5].map((value) => (
                             <RadioGroup.Item
                               key={value}
