@@ -3,6 +3,12 @@ import { Download, RefreshCw, AlertCircle } from 'lucide-react';
 import { OptimizedImage } from './optimized-image';
 import { DebugPanel } from './debug-panel';
 import { supabase, testSupabaseConnection, type CuratitRecord } from '@/lib/supabase';
+import gsap from 'gsap';
+import ScrollTrigger from 'gsap/ScrollTrigger';
+import ScrollSmoother from 'gsap/ScrollSmoother';
+
+// Register GSAP plugins
+gsap.registerPlugin(ScrollTrigger, ScrollSmoother);
 
 // Interface for processed brand data
 interface BrandData {
@@ -40,12 +46,14 @@ const fallbackImages = [
   'https://images.pexels.com/photos/18111092/pexels-photo-18111092.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&dpr=1',
 ];
 
+// Lag configuration for scroll effects
 const baseLag = 0.2;
 const lagScale = 0.3;
 
 function Grid({ scrollSmoother }: GridProps) {
   const gridRef = useRef<HTMLDivElement>(null);
   const columnRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const scrollSmootherRef = useRef<any>(null);
   
   // State for Supabase data
   const [brandData, setBrandData] = useState<BrandData[]>([]);
@@ -57,6 +65,32 @@ function Grid({ scrollSmoother }: GridProps) {
   // State for column-based rendering
   const [columnData, setColumnData] = useState<BrandData[][]>([]);
   const [numColumns, setNumColumns] = useState(0);
+
+  // Initialize ScrollSmoother if not provided
+  useEffect(() => {
+    if (!scrollSmoother && !scrollSmootherRef.current) {
+      console.log('🎬 Initializing ScrollSmoother...');
+      
+      // Create ScrollSmoother instance
+      scrollSmootherRef.current = ScrollSmoother.create({
+        smooth: 0.6,
+        effects: true,
+        normalizeScroll: true,
+      });
+      
+      console.log('✅ ScrollSmoother initialized');
+    } else if (scrollSmoother) {
+      scrollSmootherRef.current = scrollSmoother;
+    }
+
+    return () => {
+      // Cleanup on unmount
+      if (scrollSmootherRef.current && !scrollSmoother) {
+        scrollSmootherRef.current.kill();
+        scrollSmootherRef.current = null;
+      }
+    };
+  }, [scrollSmoother]);
 
   // Test Supabase connection on mount
   useEffect(() => {
@@ -243,11 +277,11 @@ function Grid({ scrollSmoother }: GridProps) {
     return columns;
   }, []);
 
-  // Initialize grid layout
+  // Initialize grid layout and apply scroll effects
   const initGrid = useCallback(() => {
     if (!gridRef.current || brandData.length === 0) return;
     
-    console.log('🚀 Initializing grid...');
+    console.log('🚀 Initializing grid with scroll effects...');
     
     const columnCount = getColumnCount();
     if (columnCount === 0) return;
@@ -256,34 +290,34 @@ function Grid({ scrollSmoother }: GridProps) {
     const columns = groupDataIntoColumns(brandData, columnCount);
     setColumnData(columns);
     
+    // Apply scroll effects after DOM update
+    setTimeout(() => {
+      const smoother = scrollSmootherRef.current;
+      if (smoother && columnRefs.current.length > 0) {
+        console.log('✨ Applying scroll effects to columns...');
+        
+        columnRefs.current.forEach((columnElement, index) => {
+          if (columnElement) {
+            const lag = baseLag + (index + 1) * lagScale;
+            smoother.effects(columnElement, { speed: 1, lag });
+            console.log(`🎯 Applied lag ${lag} to column ${index}`);
+          }
+        });
+        
+        console.log('✅ All scroll effects applied successfully');
+      } else {
+        console.warn('⚠️ ScrollSmoother not available or columns not ready');
+      }
+    }, 100);
+    
     console.log('✅ Grid initialization complete');
   }, [brandData, getColumnCount, groupDataIntoColumns]);
-
-  // Apply ScrollSmoother effects to columns
-  useEffect(() => {
-    if (!scrollSmoother || columnData.length === 0) return;
-
-    // Wait for DOM to be updated
-    setTimeout(() => {
-      columnRefs.current.forEach((columnElement, index) => {
-        if (columnElement) {
-          const lag = baseLag + (index + 1) * lagScale;
-          scrollSmoother.effects(columnElement, { speed: 1, lag });
-          console.log(`✨ Applied ScrollSmoother effect to column ${index} with lag ${lag}`);
-        }
-      });
-    }, 50);
-  }, [scrollSmoother, columnData]);
 
   // Initialize grid when brand data changes
   useEffect(() => {
     if (brandData.length > 0) {
       console.log(`🎯 Setting up grid for ${brandData.length} items`);
-      
-      // Wait for next tick to ensure DOM is updated
-      setTimeout(() => {
-        initGrid();
-      }, 100);
+      initGrid();
     }
   }, [brandData, initGrid]);
 
@@ -296,6 +330,21 @@ function Grid({ scrollSmoother }: GridProps) {
         setNumColumns(newColumnCount);
         const columns = groupDataIntoColumns(brandData, newColumnCount);
         setColumnData(columns);
+        
+        // Reapply scroll effects after resize
+        setTimeout(() => {
+          const smoother = scrollSmootherRef.current;
+          if (smoother && columnRefs.current.length > 0) {
+            console.log('🔄 Reapplying scroll effects after resize...');
+            
+            columnRefs.current.forEach((columnElement, index) => {
+              if (columnElement) {
+                const lag = baseLag + (index + 1) * lagScale;
+                smoother.effects(columnElement, { speed: 1, lag });
+              }
+            });
+          }
+        }, 150);
       }
     };
 
@@ -551,7 +600,7 @@ function Grid({ scrollSmoother }: GridProps) {
         className="grid demo-3 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 sm:py-12 md:py-16"
       >
         {columnData.length > 0 ? (
-          // Render columns with React state management
+          // Render columns with React state management and scroll effects
           columnData.map((column, columnIndex) => (
             <div
               key={`column-${columnIndex}`}
