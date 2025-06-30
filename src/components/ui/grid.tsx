@@ -1,7 +1,6 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { Download, RefreshCw, AlertCircle } from 'lucide-react';
 import { OptimizedImage } from './optimized-image';
-import { DebugPanel } from './debug-panel';
 import { supabase, testSupabaseConnection, type CuratitRecord } from '@/lib/supabase';
 
 interface BrandData {
@@ -47,7 +46,6 @@ function Grid({ scrollSmoother }: GridProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<'testing' | 'connected' | 'failed'>('testing');
-  const [debugData, setDebugData] = useState<any[]>([]);
   
   const [columnData, setColumnData] = useState<BrandData[][]>([]);
   const [numColumns, setNumColumns] = useState(0);
@@ -65,33 +63,6 @@ function Grid({ scrollSmoother }: GridProps) {
     };
 
     testConnection();
-  }, []);
-
-  const handleDebugDataFetched = useCallback((data: any[]) => {
-    setDebugData(data);
-    
-    if (data && data.length > 0) {
-      const processedData: BrandData[] = data.map((item: CuratitRecord, index: number) => {
-        const brandName = item.brand_name?.trim() || `Brand ${item.id}`;
-        const postImage = item.brand_post?.trim() || fallbackImages[index % fallbackImages.length];
-        const logoContent = item.brand_logo?.trim() || brandName.charAt(0).toUpperCase();
-        const category = item.brand_category?.trim() || 'Uncategorized';
-
-        return {
-          id: item.id,
-          brand_name: brandName,
-          postImage,
-          logoContent,
-          color: colors[index % colors.length],
-          category,
-          created_at: item.created_at,
-        };
-      });
-
-      setBrandData(processedData);
-      setIsLoading(false);
-      setError(null);
-    }
   }, []);
 
   const fetchBrandData = useCallback(async () => {
@@ -284,111 +255,93 @@ function Grid({ scrollSmoother }: GridProps) {
 
   if (connectionStatus === 'testing') {
     return (
-      <>
-        <div className="grid demo-3 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 sm:py-12 md:py-16">
-          <div className="col-span-full flex flex-col items-center justify-center py-12">
-            <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-            <div className="text-lg font-medium mb-2">Testing Supabase Connection...</div>
-            <p className="text-gray-600">Please wait while we verify your database connection.</p>
-          </div>
+      <div className="grid demo-3 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 sm:py-12 md:py-16">
+        <div className="col-span-full flex flex-col items-center justify-center py-12">
+          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+          <div className="text-lg font-medium mb-2">Testing Supabase Connection...</div>
+          <p className="text-gray-600">Please wait while we verify your database connection.</p>
         </div>
-        <DebugPanel onDataFetched={handleDebugDataFetched} />
-      </>
+      </div>
     );
   }
 
   if (connectionStatus === 'failed') {
     return (
-      <>
-        <div className="grid demo-3 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 sm:py-12 md:py-16">
-          <div className="col-span-full flex flex-col items-center justify-center py-12">
-            <AlertCircle className="w-12 h-12 text-red-600 mb-4" />
-            <div className="text-red-600 text-lg font-medium mb-2">Database Connection Failed</div>
-            <p className="text-gray-600 mb-4 text-center max-w-md">{error}</p>
-            <div className="space-y-2 text-sm text-gray-500 mb-4">
-              <p>• Check your .env file contains VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY</p>
-              <p>• Verify your Supabase project is active</p>
-              <p>• Check Row Level Security policies on your Curatit table</p>
-            </div>
-            <button
-              onClick={() => {
-                setConnectionStatus('testing');
-                window.location.reload();
-              }}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-            >
-              <RefreshCw className="w-4 h-4" />
-              Retry Connection
-            </button>
+      <div className="grid demo-3 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 sm:py-12 md:py-16">
+        <div className="col-span-full flex flex-col items-center justify-center py-12">
+          <AlertCircle className="w-12 h-12 text-red-600 mb-4" />
+          <div className="text-red-600 text-lg font-medium mb-2">Database Connection Failed</div>
+          <p className="text-gray-600 mb-4 text-center max-w-md">{error}</p>
+          <div className="space-y-2 text-sm text-gray-500 mb-4">
+            <p>• Check your .env file contains VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY</p>
+            <p>• Verify your Supabase project is active</p>
+            <p>• Check Row Level Security policies on your Curatit table</p>
           </div>
+          <button
+            onClick={() => {
+              setConnectionStatus('testing');
+              window.location.reload();
+            }}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Retry Connection
+          </button>
         </div>
-        <DebugPanel onDataFetched={handleDebugDataFetched} />
-      </>
+      </div>
     );
   }
 
   if (isLoading) {
     return (
-      <>
-        <div className="grid demo-3 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 sm:py-12 md:py-16">
-          {Array.from({ length: 12 }).map((_, i) => (
-            <div key={i} className="grid__item">
-              <div className="relative overflow-hidden rounded-xl shadow-md">
-                <div className="w-full h-full bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-[length:200%_100%] animate-shiny-text" style={{ aspectRatio: '1/1' }} />
-              </div>
+      <div className="grid demo-3 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 sm:py-12 md:py-16">
+        {Array.from({ length: 12 }).map((_, i) => (
+          <div key={i} className="grid__item">
+            <div className="relative overflow-hidden rounded-xl shadow-md">
+              <div className="w-full h-full bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-[length:200%_100%] animate-shiny-text" style={{ aspectRatio: '1/1' }} />
             </div>
-          ))}
-        </div>
-        <DebugPanel onDataFetched={handleDebugDataFetched} />
-      </>
+          </div>
+        ))}
+      </div>
     );
   }
 
   if (error) {
     return (
-      <>
-        <div className="grid demo-3 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 sm:py-12 md:py-16">
-          <div className="col-span-full flex flex-col items-center justify-center py-12">
-            <AlertCircle className="w-12 h-12 text-red-600 mb-4" />
-            <div className="text-red-600 text-lg font-medium mb-2">Failed to load brand data</div>
-            <p className="text-gray-600 mb-4 text-center max-w-md">{error}</p>
-            <button
-              onClick={fetchBrandData}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-            >
-              <RefreshCw className="w-4 h-4" />
-              Try Again
-            </button>
-          </div>
+      <div className="grid demo-3 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 sm:py-12 md:py-16">
+        <div className="col-span-full flex flex-col items-center justify-center py-12">
+          <AlertCircle className="w-12 h-12 text-red-600 mb-4" />
+          <div className="text-red-600 text-lg font-medium mb-2">Failed to load brand data</div>
+          <p className="text-gray-600 mb-4 text-center max-w-md">{error}</p>
+          <button
+            onClick={fetchBrandData}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Try Again
+          </button>
         </div>
-        <DebugPanel onDataFetched={handleDebugDataFetched} />
-      </>
+      </div>
     );
   }
 
   if (brandData.length === 0) {
     return (
-      <>
-        <div className="grid demo-3 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 sm:py-12 md:py-16">
-          <div className="col-span-full flex flex-col items-center justify-center py-12">
-            <div className="text-gray-600 text-lg font-medium mb-2">No brand data found</div>
-            <p className="text-gray-500 mb-4 text-center max-w-md">
-              Your Curatit table appears to be empty. Add some brands to see them here.
-            </p>
-            <div className="text-sm text-gray-400 mb-4">
-              Debug data: {debugData.length} records found
-            </div>
-            <button
-              onClick={fetchBrandData}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-            >
-              <RefreshCw className="w-4 h-4" />
-              Refresh Data
-            </button>
-          </div>
+      <div className="grid demo-3 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 sm:py-12 md:py-16">
+        <div className="col-span-full flex flex-col items-center justify-center py-12">
+          <div className="text-gray-600 text-lg font-medium mb-2">No brand data found</div>
+          <p className="text-gray-500 mb-4 text-center max-w-md">
+            Your Curatit table appears to be empty. Add some brands to see them here.
+          </p>
+          <button
+            onClick={fetchBrandData}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Refresh Data
+          </button>
         </div>
-        <DebugPanel onDataFetched={handleDebugDataFetched} />
-      </>
+      </div>
     );
   }
 
@@ -454,27 +407,24 @@ function Grid({ scrollSmoother }: GridProps) {
   );
 
   return (
-    <>
-      <div 
-        ref={gridRef} 
-        className="grid demo-3 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 sm:py-12 md:py-16"
-      >
-        {columnData.length > 0 ? (
-          columnData.map((column, columnIndex) => (
-            <div
-              key={`column-${columnIndex}`}
-              ref={(el) => setColumnRef(el, columnIndex)}
-              className="grid__column"
-            >
-              {column.map((brand, itemIndex) => renderBrandItem(brand, itemIndex))}
-            </div>
-          ))
-        ) : (
-          brandData.map((brand, i) => renderBrandItem(brand, i))
-        )}
-      </div>
-      <DebugPanel onDataFetched={handleDebugDataFetched} />
-    </>
+    <div 
+      ref={gridRef} 
+      className="grid demo-3 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 sm:py-12 md:py-16"
+    >
+      {columnData.length > 0 ? (
+        columnData.map((column, columnIndex) => (
+          <div
+            key={`column-${columnIndex}`}
+            ref={(el) => setColumnRef(el, columnIndex)}
+            className="grid__column"
+          >
+            {column.map((brand, itemIndex) => renderBrandItem(brand, itemIndex))}
+          </div>
+        ))
+      ) : (
+        brandData.map((brand, i) => renderBrandItem(brand, i))
+      )}
+    </div>
   );
 }
 
