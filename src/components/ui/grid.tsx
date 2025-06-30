@@ -3,12 +3,6 @@ import { Download, RefreshCw, AlertCircle } from 'lucide-react';
 import { OptimizedImage } from './optimized-image';
 import { DebugPanel } from './debug-panel';
 import { supabase, testSupabaseConnection, type CuratitRecord } from '@/lib/supabase';
-import gsap from 'gsap';
-import ScrollTrigger from 'gsap/ScrollTrigger';
-import ScrollSmoother from 'gsap/ScrollSmoother';
-
-// Register GSAP plugins
-gsap.registerPlugin(ScrollTrigger, ScrollSmoother);
 
 // Interface for processed brand data
 interface BrandData {
@@ -53,7 +47,6 @@ const lagScale = 0.3;
 function Grid({ scrollSmoother }: GridProps) {
   const gridRef = useRef<HTMLDivElement>(null);
   const columnRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const originalItems = useRef<BrandData[]>([]);
   
   // State for Supabase data
   const [brandData, setBrandData] = useState<BrandData[]>([]);
@@ -111,7 +104,6 @@ function Grid({ scrollSmoother }: GridProps) {
 
       console.log('🎨 Setting brand data from debug panel:', processedData);
       setBrandData(processedData);
-      originalItems.current = processedData;
       setIsLoading(false);
       setError(null);
     }
@@ -217,7 +209,6 @@ function Grid({ scrollSmoother }: GridProps) {
       console.log('🎨 Final processed data:', processedData);
       console.log('📊 Total items to display:', processedData.length);
       setBrandData(processedData);
-      originalItems.current = processedData;
     } catch (err) {
       console.error('💥 Error fetching brand data:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch brand data';
@@ -253,73 +244,6 @@ function Grid({ scrollSmoother }: GridProps) {
     return columns;
   }, []);
 
-  // Clear grid and restore original order
-  const clearGrid = useCallback(() => {
-    console.log('🧹 Clearing grid...');
-    // Remove column wrappers
-    if (gridRef.current) {
-      const columnElements = gridRef.current.querySelectorAll('.grid__column');
-      columnElements.forEach(col => col.remove());
-    }
-    
-    // Reset column refs
-    columnRefs.current = [];
-    setColumnData([]);
-  }, []);
-
-  // Build grid with column structure for ScrollSmoother
-  const buildGrid = useCallback((data: BrandData[], columnCount: number) => {
-    if (!gridRef.current) return;
-    
-    console.log('🏗️ Building grid with columns...');
-    
-    const fragment = document.createDocumentFragment();
-    const columns = groupDataIntoColumns(data, columnCount);
-    
-    // Clear existing column refs
-    columnRefs.current = [];
-    
-    columns.forEach((column, columnIndex) => {
-      const lag = baseLag + (columnIndex + 1) * lagScale;
-      
-      const columnContainer = document.createElement('div');
-      columnContainer.className = 'grid__column';
-      
-      // Store reference for ScrollSmoother effects
-      columnRefs.current[columnIndex] = columnContainer;
-      
-      // Add items to column (we'll let React handle the actual content)
-      fragment.appendChild(columnContainer);
-      
-      console.log(`📦 Created column ${columnIndex} with lag ${lag}`);
-    });
-    
-    gridRef.current.appendChild(fragment);
-    setColumnData(columns);
-    
-    return columns;
-  }, [groupDataIntoColumns]);
-
-  // Apply ScrollSmoother effects to columns
-  const applyScrollEffects = useCallback(() => {
-    if (!scrollSmoother || columnRefs.current.length === 0) {
-      console.warn('⚠️ ScrollSmoother not available or no columns to apply effects to');
-      return;
-    }
-    
-    console.log('✨ Applying ScrollSmoother effects...');
-    
-    columnRefs.current.forEach((columnElement, index) => {
-      if (columnElement) {
-        const lag = baseLag + (index + 1) * lagScale;
-        scrollSmoother.effects(columnElement, { speed: 1, lag });
-        console.log(`🎯 Applied lag ${lag} to column ${index}`);
-      }
-    });
-    
-    console.log('✅ All scroll effects applied successfully');
-  }, [scrollSmoother]);
-
   // Initialize grid layout and apply scroll effects
   const initGrid = useCallback(() => {
     if (!gridRef.current || brandData.length === 0) return;
@@ -329,22 +253,28 @@ function Grid({ scrollSmoother }: GridProps) {
     const columnCount = getColumnCount();
     if (columnCount === 0) return;
     
-    // Clear existing grid
-    clearGrid();
-    
-    // Build new grid structure
-    const columns = buildGrid(brandData, columnCount);
-    if (!columns) return;
-    
     setNumColumns(columnCount);
-    
-    // Apply scroll effects after DOM update
-    setTimeout(() => {
-      applyScrollEffects();
-    }, 100);
+    const columns = groupDataIntoColumns(brandData, columnCount);
+    setColumnData(columns);
     
     console.log('✅ Grid initialization complete');
-  }, [brandData, getColumnCount, clearGrid, buildGrid, applyScrollEffects]);
+  }, [brandData, getColumnCount, groupDataIntoColumns]);
+
+  // Apply ScrollSmoother effects to columns
+  useEffect(() => {
+    if (!scrollSmoother || columnData.length === 0) return;
+
+    // Wait for DOM to be updated
+    setTimeout(() => {
+      columnRefs.current.forEach((columnElement, index) => {
+        if (columnElement) {
+          const lag = baseLag + (index + 1) * lagScale;
+          scrollSmoother.effects(columnElement, { speed: 1, lag });
+          console.log(`✨ Applied ScrollSmoother effect to column ${index} with lag ${lag}`);
+        }
+      });
+    }, 50);
+  }, [scrollSmoother, columnData]);
 
   // Initialize grid when brand data changes
   useEffect(() => {
@@ -364,7 +294,9 @@ function Grid({ scrollSmoother }: GridProps) {
       const newColumnCount = getColumnCount();
       if (newColumnCount !== numColumns && newColumnCount > 0) {
         console.log(`📐 Column count changed: ${numColumns} → ${newColumnCount}`);
-        initGrid();
+        setNumColumns(newColumnCount);
+        const columns = groupDataIntoColumns(brandData, newColumnCount);
+        setColumnData(columns);
       }
     };
 
@@ -380,7 +312,7 @@ function Grid({ scrollSmoother }: GridProps) {
       window.removeEventListener('resize', debouncedResize);
       clearTimeout(resizeTimeout);
     };
-  }, [numColumns, initGrid, getColumnCount]);
+  }, [numColumns, brandData, getColumnCount, groupDataIntoColumns]);
 
   // Optimized download function with better error handling
   const downloadImage = useCallback(async (imageUrl: string, brandName: string) => {
@@ -423,6 +355,11 @@ function Grid({ scrollSmoother }: GridProps) {
         button.innerHTML = '<svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>';
       }
     }
+  }, []);
+
+  // Callback ref to capture column elements
+  const setColumnRef = useCallback((element: HTMLDivElement | null, index: number) => {
+    columnRefs.current[index] = element;
   }, []);
 
   // Connection testing state
@@ -619,6 +556,7 @@ function Grid({ scrollSmoother }: GridProps) {
           columnData.map((column, columnIndex) => (
             <div
               key={`column-${columnIndex}`}
+              ref={(el) => setColumnRef(el, columnIndex)}
               className="grid__column"
             >
               {column.map((brand, itemIndex) => renderBrandItem(brand, itemIndex))}
