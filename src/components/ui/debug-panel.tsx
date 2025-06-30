@@ -24,8 +24,6 @@ export const DebugPanel: React.FC<DebugPanelProps> = ({ onDataFetched }) => {
     };
 
     try {
-      // 1. Check configuration
-      console.log('🔍 Step 1: Checking Supabase configuration...');
       const configCheck = checkSupabaseConfig();
       results.configCheck = configCheck;
 
@@ -33,8 +31,6 @@ export const DebugPanel: React.FC<DebugPanelProps> = ({ onDataFetched }) => {
         results.errors.push(...configCheck.issues);
       }
 
-      // 2. Check environment variables
-      console.log('🔍 Step 2: Checking environment variables...');
       results.environment = {
         supabaseUrl: import.meta.env.VITE_SUPABASE_URL || 'NOT_SET',
         supabaseKey: import.meta.env.VITE_SUPABASE_ANON_KEY ? 'SET' : 'NOT_SET',
@@ -44,15 +40,10 @@ export const DebugPanel: React.FC<DebugPanelProps> = ({ onDataFetched }) => {
         urlValid: import.meta.env.VITE_SUPABASE_URL?.includes('supabase.co') || false
       };
 
-      // 3. Test basic connection
-      console.log('🔍 Step 3: Testing basic connection...');
       const connectionTest = await testSupabaseConnection();
       results.connection = connectionTest;
 
-      // 4. Try different query approaches if connection works
       if (connectionTest.success) {
-        console.log('🔍 Step 4: Trying different query approaches...');
-        
         const approaches = [
           {
             name: 'selectAll',
@@ -76,14 +67,13 @@ export const DebugPanel: React.FC<DebugPanelProps> = ({ onDataFetched }) => {
 
         for (const approach of approaches) {
           try {
-            console.log(`📡 Trying ${approach.name}...`);
             const { data, error } = await approach.query();
             
             results.queries[approach.name] = {
               success: !error,
               error: error?.message,
               dataLength: data?.length || 0,
-              data: approach.name === 'selectWithLimit' ? data : undefined // Only store data for limited query
+              data: approach.name === 'selectWithLimit' ? data : undefined
             };
 
             if (data && data.length > 0 && !results.rawData) {
@@ -99,8 +89,6 @@ export const DebugPanel: React.FC<DebugPanelProps> = ({ onDataFetched }) => {
           }
         }
 
-        // 5. Get table info
-        console.log('🔍 Step 5: Getting table information...');
         try {
           const { count, error: countError } = await supabase
             .from('Curatit')
@@ -122,13 +110,9 @@ export const DebugPanel: React.FC<DebugPanelProps> = ({ onDataFetched }) => {
 
     setDebugInfo(results);
     setIsLoading(false);
-    
-    // Log everything to console for easy copying
-    console.log('🐛 FULL DIAGNOSTIC RESULTS:', results);
   };
 
   useEffect(() => {
-    // Run diagnostic on mount
     runFullDiagnostic();
   }, []);
 
@@ -165,7 +149,6 @@ export const DebugPanel: React.FC<DebugPanelProps> = ({ onDataFetched }) => {
           </div>
 
           <div className="p-4 space-y-4 text-sm">
-            {/* Configuration Check */}
             <div>
               <h4 className="font-medium text-gray-900 mb-2 flex items-center gap-2">
                 {debugInfo.configCheck && getStatusIcon(debugInfo.configCheck.isValid)}
@@ -185,7 +168,6 @@ export const DebugPanel: React.FC<DebugPanelProps> = ({ onDataFetched }) => {
               </div>
             </div>
 
-            {/* Environment Variables */}
             <div>
               <h4 className="font-medium text-gray-900 mb-2">Environment Variables</h4>
               <div className="bg-gray-50 p-2 rounded text-xs space-y-1">
@@ -196,7 +178,6 @@ export const DebugPanel: React.FC<DebugPanelProps> = ({ onDataFetched }) => {
               </div>
             </div>
 
-            {/* Connection Status */}
             <div>
               <h4 className="font-medium text-gray-900 mb-2 flex items-center gap-2">
                 {debugInfo.connection && getStatusIcon(debugInfo.connection.success)}
@@ -218,7 +199,6 @@ export const DebugPanel: React.FC<DebugPanelProps> = ({ onDataFetched }) => {
               </div>
             </div>
 
-            {/* Query Results */}
             {debugInfo.queries && (
               <div>
                 <h4 className="font-medium text-gray-900 mb-2">Query Results</h4>
@@ -237,7 +217,6 @@ export const DebugPanel: React.FC<DebugPanelProps> = ({ onDataFetched }) => {
               </div>
             )}
 
-            {/* Raw Data Preview */}
             {debugInfo.rawData && (
               <div>
                 <h4 className="font-medium text-gray-900 mb-2">Raw Data Preview</h4>
@@ -247,7 +226,6 @@ export const DebugPanel: React.FC<DebugPanelProps> = ({ onDataFetched }) => {
               </div>
             )}
 
-            {/* Errors */}
             {debugInfo.errors && debugInfo.errors.length > 0 && (
               <div>
                 <h4 className="font-medium text-red-900 mb-2">Errors</h4>
@@ -259,7 +237,6 @@ export const DebugPanel: React.FC<DebugPanelProps> = ({ onDataFetched }) => {
               </div>
             )}
 
-            {/* Troubleshooting Steps */}
             <div>
               <h4 className="font-medium text-gray-900 mb-2">Troubleshooting Steps</h4>
               <div className="bg-blue-50 p-2 rounded text-xs space-y-1">
