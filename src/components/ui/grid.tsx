@@ -20,6 +20,7 @@ interface BrandData {
   logoContent: string; // This will be brand_logo from Supabase
   color: string;
   category: string;
+  created_at: string; // Add created_at for debugging
 }
 
 // Color gradients for brand logos
@@ -47,6 +48,7 @@ function Grid() {
   const originalItemsRef = useRef<Element[]>([]);
   const currentColumnCountRef = useRef<number | null>(null);
   const smootherRef = useRef<any>(null);
+  const initTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   // State for Supabase data
   const [brandData, setBrandData] = useState<BrandData[]>([]);
@@ -94,6 +96,7 @@ function Grid() {
           logoContent,
           color: colors[index % colors.length],
           category,
+          created_at: item.created_at,
         };
       });
 
@@ -164,6 +167,7 @@ function Grid() {
             console.log(`✅ Approach ${i + 1} successful! Found ${data.length} records`);
             console.log(`📅 Data order check - First item created_at:`, data[0]?.created_at);
             console.log(`📅 Data order check - Last item created_at:`, data[data.length - 1]?.created_at);
+            console.log(`🔍 All fetched IDs:`, data.map(item => item.id).sort((a, b) => a - b));
             successfulData = data;
             break;
           } else {
@@ -204,10 +208,12 @@ function Grid() {
           logoContent,
           color: colors[index % colors.length],
           category,
+          created_at: item.created_at,
         };
       });
 
       console.log('🎨 Final processed data:', processedData);
+      console.log('📊 Total items to display:', processedData.length);
       setBrandData(processedData);
       
       // Force ScrollSmoother to refresh after data is set
@@ -248,13 +254,22 @@ function Grid() {
       columns[index % numColumns].push(item);
     });
 
+    console.log(`📐 Grouped ${gridRef.current.querySelectorAll('.grid__item').length} items into ${numColumns} columns`);
     return { columns, numColumns };
   }, [getColumnCount]);
 
   const clearGrid = useCallback(() => {
     if (!gridRef.current) return;
+    
+    // Clear any existing timeouts
+    if (initTimeoutRef.current) {
+      clearTimeout(initTimeoutRef.current);
+      initTimeoutRef.current = null;
+    }
+    
     gridRef.current.querySelectorAll('.grid__column').forEach(col => col.remove());
     originalItemsRef.current.forEach(item => gridRef.current?.appendChild(item));
+    console.log('🧹 Grid cleared and items restored');
   }, []);
 
   const buildGrid = useCallback((columns: Element[][]) => {
@@ -274,21 +289,33 @@ function Grid() {
     });
 
     gridRef.current.appendChild(fragment);
+    console.log(`🏗️ Built grid with ${columnContainers.length} columns`);
     return columnContainers;
   }, []);
 
   const initGrid = useCallback(() => {
     if (!gridRef.current) return;
+    
+    console.log('🚀 Initializing grid...');
     clearGrid();
-    const { columns, numColumns } = groupItemsByColumn();
-    currentColumnCountRef.current = numColumns;
-    const columnContainers = buildGrid(columns);
+    
+    // Wait for DOM to settle
+    initTimeoutRef.current = setTimeout(() => {
+      if (!gridRef.current) return;
+      
+      const { columns, numColumns } = groupItemsByColumn();
+      currentColumnCountRef.current = numColumns;
+      const columnContainers = buildGrid(columns);
 
-    if (smootherRef.current) {
-      columnContainers.forEach(({ element, lag }) => {
-        smootherRef.current.effects(element, { speed: 1, lag });
-      });
-    }
+      if (smootherRef.current && columnContainers.length > 0) {
+        columnContainers.forEach(({ element, lag }) => {
+          smootherRef.current.effects(element, { speed: 1, lag });
+        });
+        console.log('✨ Applied ScrollSmoother effects to all columns');
+      }
+      
+      console.log('✅ Grid initialization complete');
+    }, 50);
   }, [clearGrid, groupItemsByColumn, buildGrid]);
 
   // Optimized download function with better error handling
@@ -337,10 +364,13 @@ function Grid() {
   useEffect(() => {
     if (!gridRef.current || brandData.length === 0) return;
     
+    console.log(`🎯 Setting up grid for ${brandData.length} items`);
+    
     // Wait for next tick to ensure DOM is updated
     setTimeout(() => {
       if (gridRef.current) {
         originalItemsRef.current = Array.from(gridRef.current.querySelectorAll('.grid__item'));
+        console.log(`📝 Captured ${originalItemsRef.current.length} original items`);
 
         // Initialize ScrollSmoother with optimized settings
         if (!smootherRef.current) {
@@ -349,15 +379,17 @@ function Grid() {
             effects: true,
             normalizeScroll: true,
           });
+          console.log('🎢 ScrollSmoother initialized');
         }
 
         initGrid();
       }
-    }, 0);
+    }, 100); // Increased timeout to ensure DOM is fully rendered
 
     const handleResize = () => {
       const newColumnCount = getColumnCount();
       if (newColumnCount !== currentColumnCountRef.current) {
+        console.log(`📐 Column count changed: ${currentColumnCountRef.current} → ${newColumnCount}`);
         initGrid();
       }
     };
@@ -373,6 +405,9 @@ function Grid() {
     return () => {
       window.removeEventListener('resize', debouncedResize);
       clearTimeout(resizeTimeout);
+      if (initTimeoutRef.current) {
+        clearTimeout(initTimeoutRef.current);
+      }
     };
   }, [initGrid, getColumnCount, brandData]);
 
@@ -493,13 +528,25 @@ function Grid() {
 
   return (
     <>
+      <div className="mb-4 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16">
+        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+          <div className="flex items-center gap-2 text-green-800 text-sm">
+            <div className="w-2 h-2 bg-green-600 rounded-full"></div>
+            <span className="font-medium">Displaying {brandData.length} items from your Supabase table</span>
+          </div>
+          <div className="text-xs text-green-600 mt-1">
+            Latest: {brandData[0]?.brand_name} • Oldest: {brandData[brandData.length - 1]?.brand_name}
+          </div>
+        </div>
+      </div>
+      
       <div 
         ref={gridRef} 
         className="grid demo-3 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 sm:py-12 md:py-16"
       >
         {brandData.map((brand, i) => {
           return (
-            <figure key={brand.id} className="grid__item group cursor-pointer">
+            <figure key={`brand-${brand.id}-${i}`} className="grid__item group cursor-pointer">
               <div className="relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-105">
                 <OptimizedImage
                   src={brand.postImage}
