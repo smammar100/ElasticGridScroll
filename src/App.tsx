@@ -42,7 +42,7 @@ function App() {
   return (
     <div id="smooth-wrapper" className="min-h-screen">
       <div id="smooth-content" className="w-full">
-        <div className="min-h-screen bg-white">
+        <div className="bg-white">
           <Navbar1 />
           <Hero />
           <Grid />

@@ -101,6 +101,14 @@ function Grid() {
       setBrandData(processedData);
       setIsLoading(false);
       setError(null);
+      
+      // Force ScrollSmoother to refresh after data is set
+      setTimeout(() => {
+        if (smootherRef.current) {
+          console.log('🔄 Refreshing ScrollSmoother after data update');
+          smootherRef.current.refresh();
+        }
+      }, 100);
     }
   }, []);
 
@@ -199,6 +207,14 @@ function Grid() {
 
       console.log('🎨 Final processed data:', processedData);
       setBrandData(processedData);
+      
+      // Force ScrollSmoother to refresh after data is set
+      setTimeout(() => {
+        if (smootherRef.current) {
+          console.log('🔄 Refreshing ScrollSmoother after data fetch');
+          smootherRef.current.refresh();
+        }
+      }, 100);
     } catch (err) {
       console.error('💥 Error fetching brand data:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch brand data';
