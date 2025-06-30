@@ -13,40 +13,55 @@ const SubscriptionPage = () => {
     const fetchImages = async () => {
       try {
         setIsLoadingImages(true);
+        console.log('🖼️ Fetching images for subscription page...');
         
         // Fetch images from Supabase, prioritizing those with valid brand_post URLs
         const { data, error } = await supabase
           .from('Curatit')
-          .select('brand_post, brand_name')
+          .select('brand_post, brand_name, id')
           .not('brand_post', 'is', null)
           .neq('brand_post', '')
           .order('created_at', { ascending: false })
-          .limit(10); // Get more than we need in case some fail to load
+          .limit(15); // Get more than we need in case some fail to load
 
         if (error) {
-          console.error('Error fetching images from Supabase:', error);
-          // Fall back to default images if Supabase fails
+          console.error('❌ Error fetching images from Supabase:', error);
           setSupabaseImages([]);
         } else if (data && data.length > 0) {
+          console.log('📊 Raw Supabase data:', data);
+          
           // Filter out any invalid URLs and extract just the image URLs
           const validImages = data
-            .filter(item => item.brand_post && item.brand_post.trim() !== '')
-            .map(item => item.brand_post.trim())
+            .filter(item => {
+              const hasValidPost = item.brand_post && item.brand_post.trim() !== '';
+              console.log(`🔍 Checking item ${item.id}: ${item.brand_name} - Valid post: ${hasValidPost}`);
+              return hasValidPost;
+            })
+            .map(item => {
+              const trimmedUrl = item.brand_post.trim();
+              console.log(`🔗 Processing URL for ${item.brand_name}: ${trimmedUrl}`);
+              return trimmedUrl;
+            })
             .filter(url => {
               // Basic URL validation
               try {
                 new URL(url);
+                console.log(`✅ Valid URL: ${url.substring(0, 50)}...`);
                 return true;
               } catch {
+                console.log(`❌ Invalid URL: ${url}`);
                 return false;
               }
             });
 
-          console.log('Fetched images from Supabase:', validImages);
+          console.log(`🎯 Found ${validImages.length} valid images from Supabase:`, validImages);
           setSupabaseImages(validImages);
+        } else {
+          console.log('📭 No data returned from Supabase');
+          setSupabaseImages([]);
         }
       } catch (err) {
-        console.error('Error in fetchImages:', err);
+        console.error('💥 Error in fetchImages:', err);
         setSupabaseImages([]);
       } finally {
         setIsLoadingImages(false);
@@ -66,17 +81,26 @@ const SubscriptionPage = () => {
   const imageData = useMemo(() => {
     // Fallback images in case Supabase doesn't have enough images
     const fallbackImages = [
-      'https://images.pexels.com/photos/18111088/pexels-photo-18111088.jpeg',
-      'https://images.pexels.com/photos/18111089/pexels-photo-18111089.jpeg',
-      'https://images.pexels.com/photos/18111090/pexels-photo-18111090.jpeg',
-      'https://images.pexels.com/photos/18111091/pexels-photo-18111091.jpeg',
-      'https://images.pexels.com/photos/18111092/pexels-photo-18111092.jpeg',
-      'https://images.pexels.com/photos/18111093/pexels-photo-18111093.jpeg',
-      'https://images.pexels.com/photos/18111094/pexels-photo-18111094.jpeg',
+      'https://images.pexels.com/photos/18111088/pexels-photo-18111088.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&dpr=1',
+      'https://images.pexels.com/photos/18111089/pexels-photo-18111089.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&dpr=1',
+      'https://images.pexels.com/photos/18111090/pexels-photo-18111090.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&dpr=1',
+      'https://images.pexels.com/photos/18111091/pexels-photo-18111091.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&dpr=1',
+      'https://images.pexels.com/photos/18111092/pexels-photo-18111092.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&dpr=1',
+      'https://images.pexels.com/photos/18111093/pexels-photo-18111093.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&dpr=1',
+      'https://images.pexels.com/photos/18111094/pexels-photo-18111094.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&dpr=1',
     ];
 
     // Combine Supabase images with fallbacks, prioritizing Supabase images
     const combinedImages = [...supabaseImages, ...fallbackImages];
+    
+    console.log('🎨 Final image data:', {
+      supabaseCount: supabaseImages.length,
+      fallbackCount: fallbackImages.length,
+      totalAvailable: combinedImages.length,
+      mobile: combinedImages.slice(0, 3).length,
+      tablet: combinedImages.slice(0, 3).length,
+      desktop: combinedImages.slice(0, 7).length
+    });
 
     return {
       mobile: combinedImages.slice(0, 3),
@@ -138,7 +162,8 @@ const SubscriptionPage = () => {
 
         {/* Loading indicator for images */}
         {isLoadingImages && (
-          <div className="text-sm text-gray-500 mb-4">
+          <div className="text-sm text-gray-500 mb-4 flex items-center gap-2">
+            <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin"></div>
             Loading your curated content...
           </div>
         )}
@@ -159,7 +184,7 @@ const SubscriptionPage = () => {
             
             return (
               <div
-                key={`mobile-${index}-${imageUrl}`}
+                key={`mobile-${index}-${imageUrl.substring(imageUrl.length - 10)}`}
                 className={`absolute bottom-0 ${heights[index]} ${zIndexes[index]} ${positions[index]} w-[200px] rounded-t-xl overflow-hidden shadow-lg transform-gpu`}
                 style={{ willChange: 'transform' }}
               >
@@ -168,9 +193,11 @@ const SubscriptionPage = () => {
                   alt={`Curated brand inspiration ${index + 1}`}
                   width={200}
                   height={index === 1 ? 192 : 160}
-                  quality={75}
+                  quality={80}
                   priority={index < 2}
-                  className="w-full h-full"
+                  className="w-full h-full object-cover"
+                  onLoad={() => console.log(`✅ Mobile image ${index + 1} loaded successfully`)}
+                  onError={() => console.log(`❌ Mobile image ${index + 1} failed to load: ${imageUrl}`)}
                 />
               </div>
             );
@@ -190,7 +217,7 @@ const SubscriptionPage = () => {
             
             return (
               <div
-                key={`tablet-${index}-${imageUrl}`}
+                key={`tablet-${index}-${imageUrl.substring(imageUrl.length - 10)}`}
                 className={`absolute bottom-0 ${heights[index]} ${zIndexes[index]} ${positions[index]} w-[280px] rounded-t-xl overflow-hidden shadow-lg transform-gpu`}
                 style={{ willChange: 'transform' }}
               >
@@ -199,9 +226,11 @@ const SubscriptionPage = () => {
                   alt={`Curated brand inspiration ${index + 1}`}
                   width={280}
                   height={index === 1 ? 224 : 192}
-                  quality={75}
+                  quality={80}
                   priority={index < 2}
-                  className="w-full h-full"
+                  className="w-full h-full object-cover"
+                  onLoad={() => console.log(`✅ Tablet image ${index + 1} loaded successfully`)}
+                  onError={() => console.log(`❌ Tablet image ${index + 1} failed to load: ${imageUrl}`)}
                 />
               </div>
             );
@@ -228,7 +257,7 @@ const SubscriptionPage = () => {
             
             return (
               <div
-                key={`desktop-${index}-${imageUrl}`}
+                key={`desktop-${index}-${imageUrl.substring(imageUrl.length - 10)}`}
                 className={`absolute bottom-0 ${heights[index]} ${zIndexes[index]} ${positions[index]} w-[270px] rounded-t-xl overflow-hidden shadow-lg transform-gpu`}
                 style={{ willChange: 'transform' }}
               >
@@ -237,9 +266,11 @@ const SubscriptionPage = () => {
                   alt={`Curated brand inspiration ${index + 1}`}
                   width={270}
                   height={heightValue}
-                  quality={75}
+                  quality={80}
                   priority={index < 4} // Prioritize center images
-                  className="w-full h-full"
+                  className="w-full h-full object-cover"
+                  onLoad={() => console.log(`✅ Desktop image ${index + 1} loaded successfully`)}
+                  onError={() => console.log(`❌ Desktop image ${index + 1} failed to load: ${imageUrl}`)}
                 />
               </div>
             );
@@ -251,9 +282,18 @@ const SubscriptionPage = () => {
           <div className="hidden md:block absolute bottom-4 left-1/2 transform -translate-x-1/2 z-40">
             <div className="bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg">
               <span className="text-sm font-medium text-gray-800">
-                Featuring real brands from our curated collection
+                Featuring {supabaseImages.length} real brands from our curated collection
               </span>
             </div>
+          </div>
+        )}
+
+        {/* Debug info (only in development) */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="absolute top-4 right-4 bg-black/80 text-white p-2 rounded text-xs">
+            <div>Supabase: {supabaseImages.length}</div>
+            <div>Loading: {isLoadingImages ? 'Yes' : 'No'}</div>
+            <div>Total: {imageData.desktop.length}</div>
           </div>
         )}
       </div>
