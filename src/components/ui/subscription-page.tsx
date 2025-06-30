@@ -137,7 +137,7 @@ const SubscriptionPage = () => {
         )}
       </div>
 
-      <div className="relative w-full min-h-[20rem] sm:min-h-[22rem] md:min-h-[24rem] flex justify-center items-end">
+      <div className="relative w-full min-h-[20rem] sm:min-h-[22rem] md:min-h-[24rem] flex justify-center items-end overflow-visible">
         {/* Mobile Stack (3 images) */}
         <div className="block sm:hidden">
           {imageData.mobile.map((imageUrl, index) => {
@@ -200,19 +200,20 @@ const SubscriptionPage = () => {
           })}
         </div>
 
-        {/* Desktop Stack (7 images) - Reverted to calc positioning */}
+        {/* Desktop Stack (7 images) - Responsive with vw units */}
         <div className="hidden md:block">
           {imageData.desktop.map((imageUrl, index) => {
             const heights = ['h-40', 'h-48', 'h-64', 'h-80', 'h-64', 'h-48', 'h-40'];
             const zIndexes = ['z-[5]', 'z-10', 'z-20', 'z-30', 'z-20', 'z-10', 'z-[5]'];
+            // Responsive positioning using vw units - scales with viewport width
             const positions = [
-              'left-[calc(50%-472.5px)]', // Far left
-              'left-[calc(50%-337.5px)]',
-              'left-[calc(50%-202.5px)]',
-              'left-[calc(50%-135px)]',   // Center
-              'left-[calc(50%-67.5px)]',
-              'left-[calc(50%+67.5px)]',
-              'left-[calc(50%+202.5px)]'  // Far right
+              'left-[calc(50%-32.8125vw)]', // Far left: 472.5px / 1440px * 100 = 32.8125vw
+              'left-[calc(50%-23.4375vw)]', // 337.5px / 1440px * 100 = 23.4375vw
+              'left-[calc(50%-14.0625vw)]', // 202.5px / 1440px * 100 = 14.0625vw
+              'left-[calc(50%-9.375vw)]',   // Center: 135px / 1440px * 100 = 9.375vw
+              'left-[calc(50%-4.6875vw)]',  // 67.5px / 1440px * 100 = 4.6875vw
+              'left-[calc(50%+4.6875vw)]',  // 67.5px / 1440px * 100 = 4.6875vw
+              'left-[calc(50%+14.0625vw)]'  // Far right: 202.5px / 1440px * 100 = 14.0625vw
             ];
             
             const heightMap = { 'h-40': 160, 'h-48': 192, 'h-64': 256, 'h-80': 320 };
@@ -221,8 +222,12 @@ const SubscriptionPage = () => {
             return (
               <div
                 key={`desktop-${index}-${imageUrl.substring(imageUrl.length - 10)}`}
-                className={`absolute bottom-0 ${heights[index]} ${zIndexes[index]} ${positions[index]} w-[270px] rounded-t-xl overflow-hidden shadow-lg transform-gpu`}
-                style={{ willChange: 'transform' }}
+                className={`absolute bottom-0 ${heights[index]} ${zIndexes[index]} ${positions[index]} w-[18.75vw] rounded-t-xl overflow-hidden shadow-lg transform-gpu`}
+                style={{ 
+                  willChange: 'transform',
+                  minWidth: '200px', // Minimum width for very small screens
+                  maxWidth: '300px'  // Maximum width for very large screens
+                }}
               >
                 <OptimizedImage
                   src={imageUrl}
