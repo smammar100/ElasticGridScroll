@@ -99,9 +99,8 @@ button {
   text-transform: uppercase;
 }
 
-/* Prevent horizontal scrolling */
+/* Allow horizontal content to extend beyond viewport when needed */
 html, body {
-  overflow-x: hidden;
   max-width: 100vw;
 }
 
