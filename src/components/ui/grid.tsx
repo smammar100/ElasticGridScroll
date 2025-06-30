@@ -124,19 +124,19 @@ function Grid() {
         key: import.meta.env.VITE_SUPABASE_ANON_KEY ? 'SET' : 'MISSING'
       });
       
-      // Try multiple approaches to get data
+      // Prioritize approaches that order by creation date (newest first)
       const approaches = [
-        // Approach 1: Simple select all
-        () => supabase.from('Curatit').select('*'),
-        
-        // Approach 2: Select specific columns
-        () => supabase.from('Curatit').select('id, brand_name, brand_post, brand_logo, brand_category, created_at'),
-        
-        // Approach 3: Select with order
+        // Approach 1: Order by created_at descending (newest first) - PRIMARY APPROACH
         () => supabase.from('Curatit').select('*').order('created_at', { ascending: false }),
         
-        // Approach 4: Select with limit
-        () => supabase.from('Curatit').select('*').limit(10)
+        // Approach 2: Order by id descending (assuming higher IDs are newer)
+        () => supabase.from('Curatit').select('*').order('id', { ascending: false }),
+        
+        // Approach 3: Select specific columns with order
+        () => supabase.from('Curatit').select('id, brand_name, brand_post, brand_logo, brand_category, created_at').order('created_at', { ascending: false }),
+        
+        // Approach 4: Simple select all (fallback)
+        () => supabase.from('Curatit').select('*')
       ];
 
       let successfulData = null;
@@ -162,6 +162,8 @@ function Grid() {
 
           if (data && data.length > 0) {
             console.log(`✅ Approach ${i + 1} successful! Found ${data.length} records`);
+            console.log(`📅 Data order check - First item created_at:`, data[0]?.created_at);
+            console.log(`📅 Data order check - Last item created_at:`, data[data.length - 1]?.created_at);
             successfulData = data;
             break;
           } else {
