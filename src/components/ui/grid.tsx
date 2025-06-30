@@ -35,19 +35,21 @@ const fallbackImages = [
   'https://images.pexels.com/photos/18111092/pexels-photo-18111092.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&dpr=1',
 ];
 
-// GSAP ScrollSmoother lag configuration - FIXED VALUES
+// GSAP ScrollSmoother lag configuration
 const baseLag = 0.2;
 const lagScale = 0.3;
 
 function Grid({ scrollSmoother }: GridProps) {
   const gridRef = useRef<HTMLDivElement>(null);
-  const originalItemsRef = useRef<HTMLElement[]>([]);
+  const columnRefs = useRef<(HTMLDivElement | null)[]>([]);
   
   const [brandData, setBrandData] = useState<BrandData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<'testing' | 'connected' | 'failed'>('testing');
-  const [currentColumnCount, setCurrentColumnCount] = useState(0);
+  
+  const [columnData, setColumnData] = useState<BrandData[][]>([]);
+  const [numColumns, setNumColumns] = useState(0);
 
   useEffect(() => {
     const testConnection = async () => {
@@ -150,141 +152,98 @@ function Grid({ scrollSmoother }: GridProps) {
     }
   }, [connectionStatus, fetchBrandData]);
 
-  // Get column count from CSS grid
   const getColumnCount = useCallback(() => {
     if (!gridRef.current) return 0;
     const styles = getComputedStyle(gridRef.current);
     return styles.getPropertyValue('grid-template-columns').split(' ').filter(Boolean).length;
   }, []);
 
-  // Group items into columns based on CSS grid
-  const groupItemsByColumn = useCallback(() => {
-    if (!gridRef.current || brandData.length === 0) return { columns: [], numColumns: 0 };
+  const groupDataIntoColumns = useCallback((data: BrandData[], columnCount: number) => {
+    const columns: BrandData[][] = Array.from({ length: columnCount }, () => []);
     
-    const numColumns = getColumnCount();
-    if (numColumns === 0) return { columns: [], numColumns: 0 };
-    
-    const columns: BrandData[][] = Array.from({ length: numColumns }, () => []);
-    
-    brandData.forEach((item, index) => {
-      columns[index % numColumns].push(item);
+    data.forEach((item, index) => {
+      columns[index % columnCount].push(item);
     });
 
-    console.log(`📐 Grouped ${brandData.length} items into ${numColumns} columns`);
-    return { columns, numColumns };
-  }, [brandData, getColumnCount]);
-
-  // Clear existing grid structure
-  const clearGrid = useCallback(() => {
-    if (!gridRef.current) return;
-    
-    // Remove column wrappers
-    gridRef.current.querySelectorAll('.grid__column').forEach((col) => col.remove());
-    
-    // Restore original items if they exist
-    originalItemsRef.current.forEach((item) => {
-      if (item.parentNode !== gridRef.current) {
-        gridRef.current?.appendChild(item);
-      }
-    });
+    console.log(`📐 Grouped ${data.length} items into ${columnCount} columns`);
+    return columns;
   }, []);
 
-  // Build column-based grid structure
-  const buildGrid = useCallback((columns: BrandData[][], numColumns: number) => {
-    if (!gridRef.current) return [];
+  const initGrid = useCallback(() => {
+    if (!gridRef.current || brandData.length === 0) return;
     
-    const fragment = document.createDocumentFragment();
-    const columnContainers: { element: HTMLDivElement; lag: number }[] = [];
+    console.log('🚀 Initializing grid...');
     
-    columns.forEach((column, i) => {
-      const lag = baseLag + (i + 1) * lagScale;
-      
-      const columnContainer = document.createElement('div');
-      columnContainer.className = 'grid__column';
-      columnContainer.setAttribute('data-lag', lag.toString());
-      
-      // Move items to this column
-      column.forEach((brand) => {
-        const existingItem = gridRef.current?.querySelector(`[data-brand-id="${brand.id}"]`);
-        if (existingItem) {
-          columnContainer.appendChild(existingItem);
-        }
-      });
-      
-      fragment.appendChild(columnContainer);
-      columnContainers.push({ element: columnContainer, lag });
-    });
+    const columnCount = getColumnCount();
+    if (columnCount === 0) return;
     
-    gridRef.current.appendChild(fragment);
-    return columnContainers;
-  }, []);
+    setNumColumns(columnCount);
+    const columns = groupDataIntoColumns(brandData, columnCount);
+    setColumnData(columns);
+    
+    console.log('✅ Grid initialization complete');
+  }, [brandData, getColumnCount, groupDataIntoColumns]);
 
-  // Apply ScrollSmoother effects
-  const applyLagEffects = useCallback((columnContainers: { element: HTMLDivElement; lag: number }[]) => {
-    if (!scrollSmoother) {
-      console.warn('⚠️ ScrollSmoother not available');
+  // Apply ScrollSmoother effects to columns - FIXED VERSION
+  useEffect(() => {
+    if (!scrollSmoother || columnData.length === 0) {
+      console.log('⚠️ ScrollSmoother not ready or no column data');
       return;
     }
 
     console.log('🎯 Applying ScrollSmoother effects to columns...');
-    
-    columnContainers.forEach(({ element, lag }, index) => {
-      try {
-        scrollSmoother.effects(element, { speed: 1, lag });
-        console.log(`✨ Applied ScrollSmoother effect to column ${index} with lag ${lag}`);
-      } catch (error) {
-        console.error(`❌ Failed to apply effect to column ${index}:`, error);
-      }
-    });
-  }, [scrollSmoother]);
 
-  // Initialize grid layout
-  const initGrid = useCallback(() => {
-    if (!gridRef.current || brandData.length === 0) return;
-    
-    console.log('🚀 Initializing GSAP grid...');
-    
-    const { columns, numColumns } = groupItemsByColumn();
-    if (numColumns === 0) return;
-    
-    clearGrid();
-    const columnContainers = buildGrid(columns, numColumns);
-    setCurrentColumnCount(numColumns);
-    
-    // Apply effects with a delay to ensure DOM is ready
-    setTimeout(() => {
-      applyLagEffects(columnContainers);
-    }, 100);
-    
-    console.log('✅ GSAP grid initialization complete');
-  }, [brandData, groupItemsByColumn, clearGrid, buildGrid, applyLagEffects]);
+    // Wait for DOM to be updated and ScrollSmoother to be ready
+    const applyEffects = () => {
+      columnRefs.current.forEach((columnElement, index) => {
+        if (columnElement) {
+          const lag = baseLag + (index + 1) * lagScale;
+          
+          try {
+            // Apply ScrollSmoother effect with lag
+            scrollSmoother.effects(columnElement, { speed: 1, lag });
+            console.log(`✨ Applied ScrollSmoother effect to column ${index} with lag ${lag}`);
+          } catch (error) {
+            console.error(`❌ Failed to apply effect to column ${index}:`, error);
+          }
+        } else {
+          console.warn(`⚠️ Column element ${index} not found`);
+        }
+      });
+    };
 
-  // Initialize grid when data is ready
+    // Apply effects with a slight delay to ensure DOM is ready
+    const timeoutId = setTimeout(applyEffects, 100);
+
+    return () => clearTimeout(timeoutId);
+  }, [scrollSmoother, columnData]);
+
   useEffect(() => {
     if (brandData.length > 0) {
-      console.log(`🎯 Setting up GSAP grid for ${brandData.length} items`);
+      console.log(`🎯 Setting up grid for ${brandData.length} items`);
       
-      // Wait for DOM to be updated
+      // Wait for next tick to ensure DOM is updated
       setTimeout(() => {
         initGrid();
-      }, 150);
+      }, 100);
     }
   }, [brandData, initGrid]);
 
-  // Handle window resize
   useEffect(() => {
     const handleResize = () => {
       const newColumnCount = getColumnCount();
-      if (newColumnCount !== currentColumnCount && newColumnCount > 0) {
-        console.log(`📐 Column count changed: ${currentColumnCount} → ${newColumnCount}`);
-        initGrid();
+      if (newColumnCount !== numColumns && newColumnCount > 0) {
+        console.log(`📐 Column count changed: ${numColumns} → ${newColumnCount}`);
+        setNumColumns(newColumnCount);
+        const columns = groupDataIntoColumns(brandData, newColumnCount);
+        setColumnData(columns);
       }
     };
 
     let resizeTimeout: NodeJS.Timeout;
     const debouncedResize = () => {
       clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(handleResize, 200);
+      resizeTimeout = setTimeout(handleResize, 150);
     };
 
     window.addEventListener('resize', debouncedResize);
@@ -292,7 +251,7 @@ function Grid({ scrollSmoother }: GridProps) {
       window.removeEventListener('resize', debouncedResize);
       clearTimeout(resizeTimeout);
     };
-  }, [currentColumnCount, getColumnCount, initGrid]);
+  }, [numColumns, brandData, getColumnCount, groupDataIntoColumns]);
 
   const downloadImage = useCallback(async (imageUrl: string, brandName: string) => {
     try {
@@ -333,6 +292,11 @@ function Grid({ scrollSmoother }: GridProps) {
         button.innerHTML = '<svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>';
       }
     }
+  }, []);
+
+  const setColumnRef = useCallback((element: HTMLDivElement | null, index: number) => {
+    columnRefs.current[index] = element;
+    console.log(`📍 Set column ref ${index}:`, element ? 'Found' : 'Null');
   }, []);
 
   if (connectionStatus === 'testing') {
@@ -428,11 +392,7 @@ function Grid({ scrollSmoother }: GridProps) {
   }
 
   const renderBrandItem = (brand: BrandData, index: number) => (
-    <figure 
-      key={`brand-${brand.id}-${index}`} 
-      className="grid__item group cursor-pointer"
-      data-brand-id={brand.id}
-    >
+    <figure key={`brand-${brand.id}-${index}`} className="grid__item group cursor-pointer">
       <div className="relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-105">
         <OptimizedImage
           src={brand.postImage}
@@ -492,24 +452,27 @@ function Grid({ scrollSmoother }: GridProps) {
     </figure>
   );
 
-  // Store original items for GSAP manipulation
-  useEffect(() => {
-    if (brandData.length > 0 && originalItemsRef.current.length === 0) {
-      // This will be populated when items are first rendered
-      setTimeout(() => {
-        if (gridRef.current) {
-          originalItemsRef.current = Array.from(gridRef.current.querySelectorAll('.grid__item'));
-        }
-      }, 50);
-    }
-  }, [brandData]);
-
   return (
     <div 
       ref={gridRef} 
       className="grid demo-3 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 sm:py-12 md:py-16"
     >
-      {brandData.map((brand, i) => renderBrandItem(brand, i))}
+      {columnData.length > 0 ? (
+        // Render columns with React state management and GSAP effects
+        columnData.map((column, columnIndex) => (
+          <div
+            key={`column-${columnIndex}`}
+            ref={(el) => setColumnRef(el, columnIndex)}
+            className="grid__column"
+            data-lag={baseLag + (columnIndex + 1) * lagScale} // Debug attribute
+          >
+            {column.map((brand, itemIndex) => renderBrandItem(brand, itemIndex))}
+          </div>
+        ))
+      ) : (
+        // Fallback to simple grid rendering if columns aren't ready
+        brandData.map((brand, i) => renderBrandItem(brand, i))
+      )}
     </div>
   );
 }
