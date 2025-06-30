@@ -237,38 +237,40 @@ const SubscriptionPage = () => {
           })}
         </div>
 
-        {/* Desktop Stack (7 images) - NEW FLEXBOX APPROACH */}
-        <div className="hidden md:flex items-end justify-center gap-2 w-full max-w-6xl mx-auto px-8">
-          {imageData.desktop.map((imageUrl, index) => {
-            // Heights create the mountain/wave effect
-            const heights = ['h-40', 'h-48', 'h-64', 'h-80', 'h-64', 'h-48', 'h-40'];
-            const zIndexes = ['z-[5]', 'z-10', 'z-20', 'z-30', 'z-20', 'z-10', 'z-[5]'];
-            
-            const heightMap = { 'h-40': 160, 'h-48': 192, 'h-64': 256, 'h-80': 320 };
-            const heightValue = heightMap[heights[index] as keyof typeof heightMap];
-            
-            console.log(`🖼️ Desktop image ${index + 1}: ${imageUrl.substring(0, 50)}... with height ${heights[index]}`);
-            
-            return (
-              <div
-                key={`desktop-${index}-${imageUrl.substring(imageUrl.length - 10)}`}
-                className={`${heights[index]} ${zIndexes[index]} w-[200px] rounded-t-xl overflow-hidden shadow-lg transform-gpu flex-shrink-0`}
-                style={{ willChange: 'transform' }}
-              >
-                <OptimizedImage
-                  src={imageUrl}
-                  alt={`Curated brand inspiration ${index + 1}`}
-                  width={200}
-                  height={heightValue}
-                  quality={80}
-                  priority={index < 4} // Prioritize center images
-                  className="w-full h-full object-cover"
-                  onLoad={() => console.log(`✅ Desktop image ${index + 1} loaded successfully`)}
-                  onError={() => console.log(`❌ Desktop image ${index + 1} failed to load: ${imageUrl}`)}
-                />
-              </div>
-            );
-          })}
+        {/* Desktop Stack (7 images) - COMPLETELY NEW GRID APPROACH */}
+        <div className="hidden md:block w-full">
+          <div className="grid grid-cols-7 gap-4 max-w-7xl mx-auto px-4 items-end justify-items-center">
+            {imageData.desktop.map((imageUrl, index) => {
+              // Heights create the mountain/wave effect
+              const heights = ['h-40', 'h-48', 'h-64', 'h-80', 'h-64', 'h-48', 'h-40'];
+              const zIndexes = ['z-[5]', 'z-10', 'z-20', 'z-30', 'z-20', 'z-10', 'z-[5]'];
+              
+              const heightMap = { 'h-40': 160, 'h-48': 192, 'h-64': 256, 'h-80': 320 };
+              const heightValue = heightMap[heights[index] as keyof typeof heightMap];
+              
+              console.log(`🖼️ Desktop image ${index + 1}: ${imageUrl.substring(0, 50)}... with height ${heights[index]}`);
+              
+              return (
+                <div
+                  key={`desktop-${index}-${imageUrl.substring(imageUrl.length - 10)}`}
+                  className={`${heights[index]} ${zIndexes[index]} w-full max-w-[180px] rounded-t-xl overflow-hidden shadow-lg transform-gpu`}
+                  style={{ willChange: 'transform' }}
+                >
+                  <OptimizedImage
+                    src={imageUrl}
+                    alt={`Curated brand inspiration ${index + 1}`}
+                    width={180}
+                    height={heightValue}
+                    quality={80}
+                    priority={index < 4} // Prioritize center images
+                    className="w-full h-full object-cover"
+                    onLoad={() => console.log(`✅ Desktop image ${index + 1} loaded successfully`)}
+                    onError={() => console.log(`❌ Desktop image ${index + 1} failed to load: ${imageUrl}`)}
+                  />
+                </div>
+              );
+            })}
+          </div>
         </div>
 
         {/* Overlay with brand info for the center image on desktop */}
