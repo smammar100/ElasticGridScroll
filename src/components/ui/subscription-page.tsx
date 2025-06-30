@@ -256,6 +256,8 @@ const SubscriptionPage = () => {
             const heightMap = { 'h-40': 160, 'h-48': 192, 'h-64': 256, 'h-80': 320 };
             const heightValue = heightMap[heights[index] as keyof typeof heightMap];
             
+            console.log(`🖼️ Desktop image ${index + 1}: ${imageUrl.substring(0, 50)}... at position ${positions[index]}`);
+            
             return (
               <div
                 key={`desktop-${index}-${imageUrl.substring(imageUrl.length - 10)}`}
