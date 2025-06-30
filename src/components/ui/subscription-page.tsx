@@ -203,13 +203,13 @@ const SubscriptionPage = () => {
             const heights = ['h-40', 'h-48', 'h-64', 'h-80', 'h-64', 'h-48', 'h-40'];
             const zIndexes = ['z-[5]', 'z-10', 'z-20', 'z-30', 'z-20', 'z-10', 'z-[5]'];
             const positions = [
-              'left-[0px]',
-              'left-[135px]',    
-              'left-[270px]',    
-              'left-[337.5px]',
-              'left-[405px]',    
-              'left-[540px]',    
-              'left-[675px]'
+              'left-[27.5px]',    // Image 0
+              'left-[162.5px]',   // Image 1
+              'left-[297.5px]',   // Image 2
+              'left-[365px]',     // Image 3 (center)
+              'left-[432.5px]',   // Image 4
+              'left-[567.5px]',   // Image 5
+              'left-[702.5px]'    // Image 6
             ];
             
             const heightMap = { 'h-40': 160, 'h-48': 192, 'h-64': 256, 'h-80': 320 };
