@@ -58,6 +58,19 @@ function App() {
         </div>
         <SubscriptionPage />
       </div>
+      
+      {/* Built with Bolt.new Badge */}
+      <div className="fixed bottom-4 right-4 z-50">
+        <a
+          href="https://bolt.new"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 px-3 py-2 bg-black/80 hover:bg-black text-white text-sm font-medium rounded-full backdrop-blur-sm border border-white/20 transition-all duration-200 hover:scale-105 shadow-lg"
+        >
+          <span className="text-xs">⚡</span>
+          <span>Built with Bolt.new</span>
+        </a>
+      </div>
     </div>
   )
 }
