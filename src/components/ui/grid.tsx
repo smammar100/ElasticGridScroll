@@ -40,7 +40,6 @@ const baseLag = 0.2;
 const lagScale = 0.3;
 
 function Grid({ scrollSmoother }: GridProps) {
-  // ALL HOOKS MUST BE CALLED AT THE TOP - BEFORE ANY CONDITIONAL RETURNS
   const gridRef = useRef<HTMLDivElement>(null);
   const originalItemsRef = useRef<HTMLElement[]>([]);
   
@@ -49,6 +48,24 @@ function Grid({ scrollSmoother }: GridProps) {
   const [error, setError] = useState<string | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<'testing' | 'connected' | 'failed'>('testing');
   const [currentColumnCount, setCurrentColumnCount] = useState(0);
+
+  useEffect(() => {
+    const testConnection = async () => {
+      console.log('🔍 Testing Supabase connection...');
+      const result = await testSupabaseConnection();
+      
+      if (result.success) {
+        console.log('✅ Supabase connection successful');
+        setConnectionStatus('connected');
+      } else {
+        console.error('❌ Supabase connection failed:', result.error);
+        setConnectionStatus('failed');
+        setError(`Connection failed: ${result.error}`);
+      }
+    };
+
+    testConnection();
+  }, []);
 
   const fetchBrandData = useCallback(async () => {
     try {
@@ -126,6 +143,12 @@ function Grid({ scrollSmoother }: GridProps) {
       setIsLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    if (connectionStatus === 'connected') {
+      fetchBrandData();
+    }
+  }, [connectionStatus, fetchBrandData]);
 
   // Get column count from CSS grid
   const getColumnCount = useCallback(() => {
@@ -236,6 +259,41 @@ function Grid({ scrollSmoother }: GridProps) {
     console.log('✅ GSAP grid initialization complete');
   }, [brandData, groupItemsByColumn, clearGrid, buildGrid, applyLagEffects]);
 
+  // Initialize grid when data is ready
+  useEffect(() => {
+    if (brandData.length > 0) {
+      console.log(`🎯 Setting up GSAP grid for ${brandData.length} items`);
+      
+      // Wait for DOM to be updated
+      setTimeout(() => {
+        initGrid();
+      }, 150);
+    }
+  }, [brandData, initGrid]);
+
+  // Handle window resize
+  useEffect(() => {
+    const handleResize = () => {
+      const newColumnCount = getColumnCount();
+      if (newColumnCount !== currentColumnCount && newColumnCount > 0) {
+        console.log(`📐 Column count changed: ${currentColumnCount} → ${newColumnCount}`);
+        initGrid();
+      }
+    };
+
+    let resizeTimeout: NodeJS.Timeout;
+    const debouncedResize = () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(handleResize, 200);
+    };
+
+    window.addEventListener('resize', debouncedResize);
+    return () => {
+      window.removeEventListener('resize', debouncedResize);
+      clearTimeout(resizeTimeout);
+    };
+  }, [currentColumnCount, getColumnCount, initGrid]);
+
   const downloadImage = useCallback(async (imageUrl: string, brandName: string) => {
     try {
       const button = document.activeElement as HTMLButtonElement;
@@ -277,78 +335,6 @@ function Grid({ scrollSmoother }: GridProps) {
     }
   }, []);
 
-  useEffect(() => {
-    const testConnection = async () => {
-      console.log('🔍 Testing Supabase connection...');
-      const result = await testSupabaseConnection();
-      
-      if (result.success) {
-        console.log('✅ Supabase connection successful');
-        setConnectionStatus('connected');
-      } else {
-        console.error('❌ Supabase connection failed:', result.error);
-        setConnectionStatus('failed');
-        setError(`Connection failed: ${result.error}`);
-      }
-    };
-
-    testConnection();
-  }, []);
-
-  useEffect(() => {
-    if (connectionStatus === 'connected') {
-      fetchBrandData();
-    }
-  }, [connectionStatus, fetchBrandData]);
-
-  // Initialize grid when data is ready
-  useEffect(() => {
-    if (brandData.length > 0) {
-      console.log(`🎯 Setting up GSAP grid for ${brandData.length} items`);
-      
-      // Wait for DOM to be updated
-      setTimeout(() => {
-        initGrid();
-      }, 150);
-    }
-  }, [brandData, initGrid]);
-
-  // Handle window resize
-  useEffect(() => {
-    const handleResize = () => {
-      const newColumnCount = getColumnCount();
-      if (newColumnCount !== currentColumnCount && newColumnCount > 0) {
-        console.log(`📐 Column count changed: ${currentColumnCount} → ${newColumnCount}`);
-        initGrid();
-      }
-    };
-
-    let resizeTimeout: NodeJS.Timeout;
-    const debouncedResize = () => {
-      clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(handleResize, 200);
-    };
-
-    window.addEventListener('resize', debouncedResize);
-    return () => {
-      window.removeEventListener('resize', debouncedResize);
-      clearTimeout(resizeTimeout);
-    };
-  }, [currentColumnCount, getColumnCount, initGrid]);
-
-  // Store original items for GSAP manipulation
-  useEffect(() => {
-    if (brandData.length > 0 && originalItemsRef.current.length === 0) {
-      // This will be populated when items are first rendered
-      setTimeout(() => {
-        if (gridRef.current) {
-          originalItemsRef.current = Array.from(gridRef.current.querySelectorAll('.grid__item'));
-        }
-      }, 50);
-    }
-  }, [brandData]);
-
-  // NOW ALL CONDITIONAL RETURNS COME AFTER ALL HOOKS
   if (connectionStatus === 'testing') {
     return (
       <div className="grid demo-3 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 sm:py-12 md:py-16">
@@ -505,6 +491,18 @@ function Grid({ scrollSmoother }: GridProps) {
       </div>
     </figure>
   );
+
+  // Store original items for GSAP manipulation
+  useEffect(() => {
+    if (brandData.length > 0 && originalItemsRef.current.length === 0) {
+      // This will be populated when items are first rendered
+      setTimeout(() => {
+        if (gridRef.current) {
+          originalItemsRef.current = Array.from(gridRef.current.querySelectorAll('.grid__item'));
+        }
+      }, 50);
+    }
+  }, [brandData]);
 
   return (
     <div 
