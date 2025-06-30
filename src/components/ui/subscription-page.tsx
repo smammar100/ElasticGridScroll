@@ -237,28 +237,37 @@ const SubscriptionPage = () => {
           })}
         </div>
 
-        {/* Desktop Stack (7 images) - NEW FLEXBOX APPROACH */}
-        <div className="hidden md:flex items-end justify-center gap-2 w-full max-w-6xl mx-auto px-8">
+        {/* Desktop Stack (7 images) - Fixed positioning container */}
+        <div className="hidden md:block relative w-[945px] mx-auto">
           {imageData.desktop.map((imageUrl, index) => {
-            // Heights create the mountain/wave effect
             const heights = ['h-40', 'h-48', 'h-64', 'h-80', 'h-64', 'h-48', 'h-40'];
             const zIndexes = ['z-[5]', 'z-10', 'z-20', 'z-30', 'z-20', 'z-10', 'z-[5]'];
+            // New absolute positioning relative to the 945px container
+            const positions = [
+              'left-[0px]',      // Far left
+              'left-[135px]',    
+              'left-[270px]',    
+              'left-[337.5px]',  // Center
+              'left-[405px]',    
+              'left-[540px]',    
+              'left-[675px]'     // Far right
+            ];
             
             const heightMap = { 'h-40': 160, 'h-48': 192, 'h-64': 256, 'h-80': 320 };
             const heightValue = heightMap[heights[index] as keyof typeof heightMap];
             
-            console.log(`🖼️ Desktop image ${index + 1}: ${imageUrl.substring(0, 50)}... with height ${heights[index]}`);
+            console.log(`🖼️ Desktop image ${index + 1}: ${imageUrl.substring(0, 50)}... at position ${positions[index]}`);
             
             return (
               <div
                 key={`desktop-${index}-${imageUrl.substring(imageUrl.length - 10)}`}
-                className={`${heights[index]} ${zIndexes[index]} w-[200px] rounded-t-xl overflow-hidden shadow-lg transform-gpu flex-shrink-0`}
+                className={`absolute bottom-0 ${heights[index]} ${zIndexes[index]} ${positions[index]} w-[270px] rounded-t-xl overflow-hidden shadow-lg transform-gpu`}
                 style={{ willChange: 'transform' }}
               >
                 <OptimizedImage
                   src={imageUrl}
                   alt={`Curated brand inspiration ${index + 1}`}
-                  width={200}
+                  width={270}
                   height={heightValue}
                   quality={80}
                   priority={index < 4} // Prioritize center images
