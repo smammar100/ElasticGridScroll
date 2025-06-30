@@ -234,16 +234,6 @@ const SubscriptionPage = () => {
             );
           })}
         </div>
-
-        {!isLoadingImages && supabaseImages.length > 0 && (
-          <div className="hidden md:block absolute bottom-4 left-1/2 transform -translate-x-1/2 z-40">
-            <div className="bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg">
-              <span className="text-sm font-medium text-gray-800">
-                Featuring {supabaseImages.length} real brands from our curated collection
-              </span>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
