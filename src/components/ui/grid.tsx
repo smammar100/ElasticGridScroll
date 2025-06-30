@@ -3,14 +3,6 @@ import { Download, RefreshCw, AlertCircle } from 'lucide-react';
 import { OptimizedImage } from './optimized-image';
 import { DebugPanel } from './debug-panel';
 import { supabase, testSupabaseConnection, type CuratitRecord } from '@/lib/supabase';
-import gsap from 'gsap';
-import ScrollTrigger from 'gsap/ScrollTrigger';
-import ScrollSmoother from 'gsap/ScrollSmoother';
-
-gsap.registerPlugin(ScrollTrigger, ScrollSmoother);
-
-const baseLag = 0.2;
-const lagScale = 0.3;
 
 // Interface for processed brand data
 interface BrandData {
@@ -21,6 +13,11 @@ interface BrandData {
   color: string;
   category: string;
   created_at: string; // Add created_at for debugging
+}
+
+// Props interface to receive ScrollSmoother instance
+interface GridProps {
+  scrollSmoother?: any;
 }
 
 // Color gradients for brand logos
@@ -43,12 +40,12 @@ const fallbackImages = [
   'https://images.pexels.com/photos/18111092/pexels-photo-18111092.jpeg?auto=compress&cs=tinysrgb&w=400&h=400&dpr=1',
 ];
 
-function Grid() {
+const baseLag = 0.2;
+const lagScale = 0.3;
+
+function Grid({ scrollSmoother }: GridProps) {
   const gridRef = useRef<HTMLDivElement>(null);
-  const originalItemsRef = useRef<Element[]>([]);
-  const currentColumnCountRef = useRef<number | null>(null);
-  const smootherRef = useRef<any>(null);
-  const initTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const columnRefs = useRef<(HTMLDivElement | null)[]>([]);
   
   // State for Supabase data
   const [brandData, setBrandData] = useState<BrandData[]>([]);
@@ -56,6 +53,10 @@ function Grid() {
   const [error, setError] = useState<string | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<'testing' | 'connected' | 'failed'>('testing');
   const [debugData, setDebugData] = useState<any[]>([]);
+  
+  // State for column-based rendering
+  const [columnData, setColumnData] = useState<BrandData[][]>([]);
+  const [numColumns, setNumColumns] = useState(0);
 
   // Test Supabase connection on mount
   useEffect(() => {
@@ -104,14 +105,6 @@ function Grid() {
       setBrandData(processedData);
       setIsLoading(false);
       setError(null);
-      
-      // Force ScrollSmoother to refresh after data is set
-      setTimeout(() => {
-        if (smootherRef.current) {
-          console.log('🔄 Refreshing ScrollSmoother after data update');
-          smootherRef.current.refresh();
-        }
-      }, 100);
     }
   }, []);
 
@@ -215,14 +208,6 @@ function Grid() {
       console.log('🎨 Final processed data:', processedData);
       console.log('📊 Total items to display:', processedData.length);
       setBrandData(processedData);
-      
-      // Force ScrollSmoother to refresh after data is set
-      setTimeout(() => {
-        if (smootherRef.current) {
-          console.log('🔄 Refreshing ScrollSmoother after data fetch');
-          smootherRef.current.refresh();
-        }
-      }, 100);
     } catch (err) {
       console.error('💥 Error fetching brand data:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch brand data';
@@ -239,84 +224,94 @@ function Grid() {
     }
   }, [connectionStatus, fetchBrandData]);
 
+  // Get column count from CSS grid
   const getColumnCount = useCallback(() => {
     if (!gridRef.current) return 0;
     const styles = getComputedStyle(gridRef.current);
     return styles.getPropertyValue('grid-template-columns').split(' ').filter(Boolean).length;
   }, []);
 
-  const groupItemsByColumn = useCallback(() => {
-    if (!gridRef.current) return { columns: [], numColumns: 0 };
-    const numColumns = getColumnCount();
-    const columns = Array.from({ length: numColumns }, () => []);
+  // Group brand data into columns for React rendering
+  const groupDataIntoColumns = useCallback((data: BrandData[], columnCount: number) => {
+    const columns: BrandData[][] = Array.from({ length: columnCount }, () => []);
     
-    gridRef.current.querySelectorAll('.grid__item').forEach((item, index) => {
-      columns[index % numColumns].push(item);
+    data.forEach((item, index) => {
+      columns[index % columnCount].push(item);
     });
 
-    console.log(`📐 Grouped ${gridRef.current.querySelectorAll('.grid__item').length} items into ${numColumns} columns`);
-    return { columns, numColumns };
-  }, [getColumnCount]);
-
-  const clearGrid = useCallback(() => {
-    if (!gridRef.current) return;
-    
-    // Clear any existing timeouts
-    if (initTimeoutRef.current) {
-      clearTimeout(initTimeoutRef.current);
-      initTimeoutRef.current = null;
-    }
-    
-    gridRef.current.querySelectorAll('.grid__column').forEach(col => col.remove());
-    originalItemsRef.current.forEach(item => gridRef.current?.appendChild(item));
-    console.log('🧹 Grid cleared and items restored');
+    console.log(`📐 Grouped ${data.length} items into ${columnCount} columns`);
+    return columns;
   }, []);
 
-  const buildGrid = useCallback((columns: Element[][]) => {
-    if (!gridRef.current) return [];
-    const fragment = document.createDocumentFragment();
-    const columnContainers: { element: HTMLDivElement; lag: number }[] = [];
-
-    columns.forEach((column, i) => {
-      const lag = baseLag + (i + 1) * lagScale;
-      const columnContainer = document.createElement('div');
-      columnContainer.className = 'grid__column';
-      
-      column.forEach(item => columnContainer.appendChild(item));
-      
-      fragment.appendChild(columnContainer);
-      columnContainers.push({ element: columnContainer, lag });
-    });
-
-    gridRef.current.appendChild(fragment);
-    console.log(`🏗️ Built grid with ${columnContainers.length} columns`);
-    return columnContainers;
-  }, []);
-
+  // Initialize grid layout
   const initGrid = useCallback(() => {
-    if (!gridRef.current) return;
+    if (!gridRef.current || brandData.length === 0) return;
     
     console.log('🚀 Initializing grid...');
-    clearGrid();
     
-    // Wait for DOM to settle
-    initTimeoutRef.current = setTimeout(() => {
-      if (!gridRef.current) return;
-      
-      const { columns, numColumns } = groupItemsByColumn();
-      currentColumnCountRef.current = numColumns;
-      const columnContainers = buildGrid(columns);
+    const columnCount = getColumnCount();
+    if (columnCount === 0) return;
+    
+    setNumColumns(columnCount);
+    const columns = groupDataIntoColumns(brandData, columnCount);
+    setColumnData(columns);
+    
+    console.log('✅ Grid initialization complete');
+  }, [brandData, getColumnCount, groupDataIntoColumns]);
 
-      if (smootherRef.current && columnContainers.length > 0) {
-        columnContainers.forEach(({ element, lag }) => {
-          smootherRef.current.effects(element, { speed: 1, lag });
-        });
-        console.log('✨ Applied ScrollSmoother effects to all columns');
-      }
-      
-      console.log('✅ Grid initialization complete');
+  // Apply ScrollSmoother effects to columns
+  useEffect(() => {
+    if (!scrollSmoother || columnData.length === 0) return;
+
+    // Wait for DOM to be updated
+    setTimeout(() => {
+      columnRefs.current.forEach((columnElement, index) => {
+        if (columnElement) {
+          const lag = baseLag + (index + 1) * lagScale;
+          scrollSmoother.effects(columnElement, { speed: 1, lag });
+          console.log(`✨ Applied ScrollSmoother effect to column ${index} with lag ${lag}`);
+        }
+      });
     }, 50);
-  }, [clearGrid, groupItemsByColumn, buildGrid]);
+  }, [scrollSmoother, columnData]);
+
+  // Initialize grid when brand data changes
+  useEffect(() => {
+    if (brandData.length > 0) {
+      console.log(`🎯 Setting up grid for ${brandData.length} items`);
+      
+      // Wait for next tick to ensure DOM is updated
+      setTimeout(() => {
+        initGrid();
+      }, 100);
+    }
+  }, [brandData, initGrid]);
+
+  // Handle window resize
+  useEffect(() => {
+    const handleResize = () => {
+      const newColumnCount = getColumnCount();
+      if (newColumnCount !== numColumns && newColumnCount > 0) {
+        console.log(`📐 Column count changed: ${numColumns} → ${newColumnCount}`);
+        setNumColumns(newColumnCount);
+        const columns = groupDataIntoColumns(brandData, newColumnCount);
+        setColumnData(columns);
+      }
+    };
+
+    // Debounce resize handler for better performance
+    let resizeTimeout: NodeJS.Timeout;
+    const debouncedResize = () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(handleResize, 150);
+    };
+
+    window.addEventListener('resize', debouncedResize);
+    return () => {
+      window.removeEventListener('resize', debouncedResize);
+      clearTimeout(resizeTimeout);
+    };
+  }, [numColumns, brandData, getColumnCount, groupDataIntoColumns]);
 
   // Optimized download function with better error handling
   const downloadImage = useCallback(async (imageUrl: string, brandName: string) => {
@@ -361,55 +356,10 @@ function Grid() {
     }
   }, []);
 
-  useEffect(() => {
-    if (!gridRef.current || brandData.length === 0) return;
-    
-    console.log(`🎯 Setting up grid for ${brandData.length} items`);
-    
-    // Wait for next tick to ensure DOM is updated
-    setTimeout(() => {
-      if (gridRef.current) {
-        originalItemsRef.current = Array.from(gridRef.current.querySelectorAll('.grid__item'));
-        console.log(`📝 Captured ${originalItemsRef.current.length} original items`);
-
-        // Initialize ScrollSmoother with optimized settings
-        if (!smootherRef.current) {
-          smootherRef.current = ScrollSmoother.create({
-            smooth: 0.6, // Reduced for better performance
-            effects: true,
-            normalizeScroll: true,
-          });
-          console.log('🎢 ScrollSmoother initialized');
-        }
-
-        initGrid();
-      }
-    }, 100); // Increased timeout to ensure DOM is fully rendered
-
-    const handleResize = () => {
-      const newColumnCount = getColumnCount();
-      if (newColumnCount !== currentColumnCountRef.current) {
-        console.log(`📐 Column count changed: ${currentColumnCountRef.current} → ${newColumnCount}`);
-        initGrid();
-      }
-    };
-
-    // Debounce resize handler for better performance
-    let resizeTimeout: NodeJS.Timeout;
-    const debouncedResize = () => {
-      clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(handleResize, 150);
-    };
-
-    window.addEventListener('resize', debouncedResize);
-    return () => {
-      window.removeEventListener('resize', debouncedResize);
-      clearTimeout(resizeTimeout);
-      if (initTimeoutRef.current) {
-        clearTimeout(initTimeoutRef.current);
-      }
-    };
-  }, [initGrid, getColumnCount, brandData]);
+  // Callback ref to capture column elements
+  const setColumnRef = useCallback((element: HTMLDivElement | null, index: number) => {
+    columnRefs.current[index] = element;
+  }, []);
 
   // Connection testing state
   if (connectionStatus === 'testing') {
@@ -526,6 +476,74 @@ function Grid() {
     );
   }
 
+  // Render brand item component
+  const renderBrandItem = (brand: BrandData, index: number) => (
+    <figure key={`brand-${brand.id}-${index}`} className="grid__item group cursor-pointer">
+      <div className="relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+        <OptimizedImage
+          src={brand.postImage}
+          alt={`${brand.brand_name} brand post`}
+          width={400}
+          height={400}
+          quality={80}
+          priority={index < 8} // Prioritize first 8 images for better performance
+          className="w-full h-full"
+          style={{ aspectRatio: '1/1' }}
+        />
+
+        {/* Brand Logo - Top Left */}
+        <div className="absolute top-3 left-3 sm:top-4 sm:left-4 z-10">
+          <div className={`w-9 h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-br ${brand.color} flex items-center justify-center shadow-lg`}>
+            {/* Check if logoContent is a URL (image) or text */}
+            {brand.logoContent.startsWith('http') ? (
+              <img 
+                src={brand.logoContent} 
+                alt={`${brand.brand_name} logo`}
+                className="w-full h-full rounded-full object-cover"
+              />
+            ) : (
+              <span className="text-white font-semibold text-sm sm:text-base md:text-lg">
+                {brand.logoContent}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Brand Name */}
+        <div className="absolute top-14 left-3 sm:top-16 sm:left-4 md:top-18 md:left-4 z-10">
+          <h3 className="text-white font-medium text-sm sm:text-base md:text-lg bg-black/60 px-3 py-1.5 rounded-lg backdrop-blur-sm">
+            {brand.brand_name}
+          </h3>
+        </div>
+
+        {/* Category Badge - Top Right */}
+        <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10">
+          <span className="text-white text-xs sm:text-sm bg-white/20 px-2 py-1 rounded-full backdrop-blur-sm border border-white/30">
+            {brand.category}
+          </span>
+        </div>
+
+        {/* Download Button */}
+        <div className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 z-10">
+          <button 
+            className="w-11 h-11 sm:w-12 sm:h-12 md:w-14 md:h-14 bg-white/95 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-110 group-hover:bg-text-primary group-hover:text-white disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
+            onClick={(e) => {
+              e.stopPropagation();
+              downloadImage(brand.postImage, brand.brand_name);
+            }}
+            title={`Download ${brand.brand_name} image`}
+            aria-label={`Download ${brand.brand_name} image`}
+          >
+            <Download size={16} className="text-text-secondary group-hover:text-white w-4 h-4 sm:w-5 sm:h-5" />
+          </button>
+        </div>
+
+        {/* Overlay for better text readability */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20 rounded-xl"></div>
+      </div>
+    </figure>
+  );
+
   return (
     <>
       <div className="mb-4 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16">
@@ -544,74 +562,21 @@ function Grid() {
         ref={gridRef} 
         className="grid demo-3 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 sm:py-12 md:py-16"
       >
-        {brandData.map((brand, i) => {
-          return (
-            <figure key={`brand-${brand.id}-${i}`} className="grid__item group cursor-pointer">
-              <div className="relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-                <OptimizedImage
-                  src={brand.postImage}
-                  alt={`${brand.brand_name} brand post`}
-                  width={400}
-                  height={400}
-                  quality={80}
-                  priority={i < 8} // Prioritize first 8 images for better performance
-                  className="w-full h-full"
-                  style={{ aspectRatio: '1/1' }}
-                />
-
-                {/* Brand Logo - Top Left */}
-                <div className="absolute top-3 left-3 sm:top-4 sm:left-4 z-10">
-                  <div className={`w-9 h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-br ${brand.color} flex items-center justify-center shadow-lg`}>
-                    {/* Check if logoContent is a URL (image) or text */}
-                    {brand.logoContent.startsWith('http') ? (
-                      <img 
-                        src={brand.logoContent} 
-                        alt={`${brand.brand_name} logo`}
-                        className="w-full h-full rounded-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-white font-semibold text-sm sm:text-base md:text-lg">
-                        {brand.logoContent}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Brand Name */}
-                <div className="absolute top-14 left-3 sm:top-16 sm:left-4 md:top-18 md:left-4 z-10">
-                  <h3 className="text-white font-medium text-sm sm:text-base md:text-lg bg-black/60 px-3 py-1.5 rounded-lg backdrop-blur-sm">
-                    {brand.brand_name}
-                  </h3>
-                </div>
-
-                {/* Category Badge - Top Right */}
-                <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10">
-                  <span className="text-white text-xs sm:text-sm bg-white/20 px-2 py-1 rounded-full backdrop-blur-sm border border-white/30">
-                    {brand.category}
-                  </span>
-                </div>
-
-                {/* Download Button */}
-                <div className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 z-10">
-                  <button 
-                    className="w-11 h-11 sm:w-12 sm:h-12 md:w-14 md:h-14 bg-white/95 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-110 group-hover:bg-text-primary group-hover:text-white disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      downloadImage(brand.postImage, brand.brand_name);
-                    }}
-                    title={`Download ${brand.brand_name} image`}
-                    aria-label={`Download ${brand.brand_name} image`}
-                  >
-                    <Download size={16} className="text-text-secondary group-hover:text-white w-4 h-4 sm:w-5 sm:h-5" />
-                  </button>
-                </div>
-
-                {/* Overlay for better text readability */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20 rounded-xl"></div>
-              </div>
-            </figure>
-          );
-        })}
+        {columnData.length > 0 ? (
+          // Render columns with React state management
+          columnData.map((column, columnIndex) => (
+            <div
+              key={`column-${columnIndex}`}
+              ref={(el) => setColumnRef(el, columnIndex)}
+              className="grid__column"
+            >
+              {column.map((brand, itemIndex) => renderBrandItem(brand, itemIndex))}
+            </div>
+          ))
+        ) : (
+          // Fallback to simple grid rendering if columns aren't ready
+          brandData.map((brand, i) => renderBrandItem(brand, i))
+        )}
       </div>
       <DebugPanel onDataFetched={handleDebugDataFetched} />
     </>

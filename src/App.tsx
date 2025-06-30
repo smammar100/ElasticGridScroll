@@ -1,4 +1,4 @@
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 import { Navbar1 } from "@/components/ui/navbar-1"
 import { Hero } from "@/components/ui/animated-hero"
 import { Grid } from "@/components/ui/grid"
@@ -11,9 +11,11 @@ import ScrollSmoother from 'gsap/ScrollSmoother'
 gsap.registerPlugin(ScrollTrigger, ScrollSmoother)
 
 function App() {
+  const scrollSmootherRef = useRef<any>(null);
+
   useEffect(() => {
     // Initialize ScrollSmoother with optimized settings for performance
-    const smoother = ScrollSmoother.create({
+    scrollSmootherRef.current = ScrollSmoother.create({
       smooth: 0.6, // Reduced for better performance
       effects: true,
       normalizeScroll: true,
@@ -27,8 +29,13 @@ function App() {
     document.head.appendChild(preloadLink);
 
     return () => {
-      smoother?.kill()
-      document.head.removeChild(preloadLink);
+      if (scrollSmootherRef.current) {
+        scrollSmootherRef.current.kill();
+        scrollSmootherRef.current = null;
+      }
+      if (document.head.contains(preloadLink)) {
+        document.head.removeChild(preloadLink);
+      }
     }
   }, [])
 
@@ -45,7 +52,7 @@ function App() {
         <div className="bg-white">
           <Navbar1 />
           <Hero />
-          <Grid />
+          <Grid scrollSmoother={scrollSmootherRef.current} />
         </div>
         <SubscriptionPage />
       </div>
