@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { supabase, testSupabaseConnection } from '@/lib/supabase';
-import { RefreshCw, Database, Eye, EyeOff } from 'lucide-react';
+import { supabase, testSupabaseConnection, checkSupabaseConfig } from '@/lib/supabase';
+import { RefreshCw, Database, Eye, EyeOff, AlertTriangle, CheckCircle } from 'lucide-react';
 
 interface DebugPanelProps {
   onDataFetched?: (data: any[]) => void;
@@ -16,6 +16,7 @@ export const DebugPanel: React.FC<DebugPanelProps> = ({ onDataFetched }) => {
     const results: any = {
       timestamp: new Date().toISOString(),
       environment: {},
+      configCheck: {},
       connection: {},
       tableInfo: {},
       rawData: null,
@@ -23,129 +24,97 @@ export const DebugPanel: React.FC<DebugPanelProps> = ({ onDataFetched }) => {
     };
 
     try {
-      // 1. Check environment variables
-      console.log('🔍 Step 1: Checking environment variables...');
+      // 1. Check configuration
+      console.log('🔍 Step 1: Checking Supabase configuration...');
+      const configCheck = checkSupabaseConfig();
+      results.configCheck = configCheck;
+
+      if (!configCheck.isValid) {
+        results.errors.push(...configCheck.issues);
+      }
+
+      // 2. Check environment variables
+      console.log('🔍 Step 2: Checking environment variables...');
       results.environment = {
         supabaseUrl: import.meta.env.VITE_SUPABASE_URL || 'NOT_SET',
         supabaseKey: import.meta.env.VITE_SUPABASE_ANON_KEY ? 'SET' : 'NOT_SET',
         keyLength: import.meta.env.VITE_SUPABASE_ANON_KEY?.length || 0,
         nodeEnv: import.meta.env.NODE_ENV,
-        mode: import.meta.env.MODE
+        mode: import.meta.env.MODE,
+        urlValid: import.meta.env.VITE_SUPABASE_URL?.includes('supabase.co') || false
       };
 
-      // 2. Test basic connection
-      console.log('🔍 Step 2: Testing basic connection...');
+      // 3. Test basic connection
+      console.log('🔍 Step 3: Testing basic connection...');
       const connectionTest = await testSupabaseConnection();
       results.connection = connectionTest;
 
-      // 3. Get table schema info
-      console.log('🔍 Step 3: Getting table information...');
-      try {
-        const { data: tableData, error: tableError } = await supabase
-          .from('Curatit')
-          .select('*')
-          .limit(0); // Just get schema, no data
-
-        if (tableError) {
-          results.errors.push(`Table schema error: ${tableError.message}`);
-        } else {
-          results.tableInfo.schemaAccessible = true;
-        }
-      } catch (err) {
-        results.errors.push(`Table access error: ${err}`);
-      }
-
-      // 4. Try to count rows
-      console.log('🔍 Step 4: Counting rows...');
-      try {
-        const { count, error: countError } = await supabase
-          .from('Curatit')
-          .select('*', { count: 'exact', head: true });
-
-        if (countError) {
-          results.errors.push(`Count error: ${countError.message}`);
-        } else {
-          results.tableInfo.totalRows = count;
-        }
-      } catch (err) {
-        results.errors.push(`Count operation error: ${err}`);
-      }
-
-      // 5. Try different query approaches
-      console.log('🔍 Step 5: Trying different query approaches...');
-      
-      // Approach 1: Simple select all
-      try {
-        const { data: data1, error: error1 } = await supabase
-          .from('Curatit')
-          .select('*');
+      // 4. Try different query approaches if connection works
+      if (connectionTest.success) {
+        console.log('🔍 Step 4: Trying different query approaches...');
         
-        results.queries = results.queries || {};
-        results.queries.selectAll = {
-          success: !error1,
-          error: error1?.message,
-          dataLength: data1?.length || 0,
-          data: data1
-        };
+        const approaches = [
+          {
+            name: 'selectAll',
+            query: () => supabase.from('Curatit').select('*')
+          },
+          {
+            name: 'selectWithOrder',
+            query: () => supabase.from('Curatit').select('*').order('created_at', { ascending: false })
+          },
+          {
+            name: 'selectSpecific',
+            query: () => supabase.from('Curatit').select('id, brand_name, brand_post, brand_logo, brand_category, created_at')
+          },
+          {
+            name: 'selectWithLimit',
+            query: () => supabase.from('Curatit').select('*').limit(10)
+          }
+        ];
 
-        if (data1 && data1.length > 0) {
-          results.rawData = data1;
-          onDataFetched?.(data1);
+        results.queries = {};
+
+        for (const approach of approaches) {
+          try {
+            console.log(`📡 Trying ${approach.name}...`);
+            const { data, error } = await approach.query();
+            
+            results.queries[approach.name] = {
+              success: !error,
+              error: error?.message,
+              dataLength: data?.length || 0,
+              data: approach.name === 'selectWithLimit' ? data : undefined // Only store data for limited query
+            };
+
+            if (data && data.length > 0 && !results.rawData) {
+              results.rawData = data;
+              onDataFetched?.(data);
+            }
+          } catch (err) {
+            results.queries[approach.name] = {
+              success: false,
+              error: `Exception: ${err}`,
+              dataLength: 0
+            };
+          }
         }
-      } catch (err) {
-        results.queries.selectAll = {
-          success: false,
-          error: `Exception: ${err}`,
-          dataLength: 0
-        };
-      }
 
-      // Approach 2: Select with specific columns
-      try {
-        const { data: data2, error: error2 } = await supabase
-          .from('Curatit')
-          .select('id, brand_name, brand_post, brand_logo, brand_category, created_at');
-        
-        results.queries.selectSpecific = {
-          success: !error2,
-          error: error2?.message,
-          dataLength: data2?.length || 0,
-          data: data2
-        };
-      } catch (err) {
-        results.queries.selectSpecific = {
-          success: false,
-          error: `Exception: ${err}`,
-          dataLength: 0
-        };
-      }
+        // 5. Get table info
+        console.log('🔍 Step 5: Getting table information...');
+        try {
+          const { count, error: countError } = await supabase
+            .from('Curatit')
+            .select('*', { count: 'exact', head: true });
 
-      // Approach 3: Select with limit
-      try {
-        const { data: data3, error: error3 } = await supabase
-          .from('Curatit')
-          .select('*')
-          .limit(10);
-        
-        results.queries.selectWithLimit = {
-          success: !error3,
-          error: error3?.message,
-          dataLength: data3?.length || 0,
-          data: data3
-        };
-      } catch (err) {
-        results.queries.selectWithLimit = {
-          success: false,
-          error: `Exception: ${err}`,
-          dataLength: 0
-        };
+          if (countError) {
+            results.errors.push(`Count error: ${countError.message}`);
+          } else {
+            results.tableInfo.totalRows = count;
+          }
+        } catch (err) {
+          results.errors.push(`Count operation error: ${err}`);
+        }
       }
-
-      // Note: RLS check removed as it requires a custom function that doesn't exist
-      results.tableInfo.rls = {
-        success: false,
-        note: 'RLS check skipped - requires custom database function'
-      };
 
     } catch (globalError) {
       results.errors.push(`Global error: ${globalError}`);
@@ -162,6 +131,14 @@ export const DebugPanel: React.FC<DebugPanelProps> = ({ onDataFetched }) => {
     // Run diagnostic on mount
     runFullDiagnostic();
   }, []);
+
+  const getStatusIcon = (success: boolean) => {
+    return success ? (
+      <CheckCircle className="w-4 h-4 text-green-600" />
+    ) : (
+      <AlertTriangle className="w-4 h-4 text-red-600" />
+    );
+  };
 
   return (
     <div className="fixed bottom-4 right-4 z-50">
@@ -188,33 +165,56 @@ export const DebugPanel: React.FC<DebugPanelProps> = ({ onDataFetched }) => {
           </div>
 
           <div className="p-4 space-y-4 text-sm">
-            {/* Environment Check */}
+            {/* Configuration Check */}
+            <div>
+              <h4 className="font-medium text-gray-900 mb-2 flex items-center gap-2">
+                {debugInfo.configCheck && getStatusIcon(debugInfo.configCheck.isValid)}
+                Configuration Check
+              </h4>
+              <div className={`p-2 rounded text-xs ${debugInfo.configCheck?.isValid ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
+                {debugInfo.configCheck?.isValid ? (
+                  <div>✅ Configuration is valid</div>
+                ) : (
+                  <div>
+                    <div>❌ Configuration issues found:</div>
+                    {debugInfo.configCheck?.issues?.map((issue: string, index: number) => (
+                      <div key={index} className="ml-2">• {issue}</div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Environment Variables */}
             <div>
               <h4 className="font-medium text-gray-900 mb-2">Environment Variables</h4>
-              <div className="bg-gray-50 p-2 rounded text-xs">
+              <div className="bg-gray-50 p-2 rounded text-xs space-y-1">
                 <div>URL: {debugInfo.environment?.supabaseUrl?.substring(0, 30)}...</div>
                 <div>Key: {debugInfo.environment?.supabaseKey} ({debugInfo.environment?.keyLength} chars)</div>
+                <div>URL Valid: {debugInfo.environment?.urlValid ? '✅' : '❌'}</div>
                 <div>Mode: {debugInfo.environment?.mode}</div>
               </div>
             </div>
 
             {/* Connection Status */}
             <div>
-              <h4 className="font-medium text-gray-900 mb-2">Connection Status</h4>
+              <h4 className="font-medium text-gray-900 mb-2 flex items-center gap-2">
+                {debugInfo.connection && getStatusIcon(debugInfo.connection.success)}
+                Connection Status
+              </h4>
               <div className={`p-2 rounded text-xs ${debugInfo.connection?.success ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
-                {debugInfo.connection?.success ? '✅ Connected' : '❌ Failed'}
-                {debugInfo.connection?.error && <div>Error: {debugInfo.connection.error}</div>}
-                {debugInfo.connection?.count !== undefined && <div>Rows found: {debugInfo.connection.count}</div>}
-              </div>
-            </div>
-
-            {/* Table Info */}
-            <div>
-              <h4 className="font-medium text-gray-900 mb-2">Table Information</h4>
-              <div className="bg-gray-50 p-2 rounded text-xs">
-                <div>Total Rows: {debugInfo.tableInfo?.totalRows ?? 'Unknown'}</div>
-                <div>Schema Access: {debugInfo.tableInfo?.schemaAccessible ? '✅' : '❌'}</div>
-                <div>RLS Status: {debugInfo.tableInfo?.rls?.note || 'Unknown'}</div>
+                {debugInfo.connection?.success ? (
+                  <div>
+                    <div>✅ Connected successfully</div>
+                    <div>Records found: {debugInfo.connection.count}</div>
+                    {debugInfo.connection.message && <div>{debugInfo.connection.message}</div>}
+                  </div>
+                ) : (
+                  <div>
+                    <div>❌ Connection failed</div>
+                    {debugInfo.connection?.error && <div>Error: {debugInfo.connection.error}</div>}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -225,8 +225,10 @@ export const DebugPanel: React.FC<DebugPanelProps> = ({ onDataFetched }) => {
                 <div className="space-y-2">
                   {Object.entries(debugInfo.queries).map(([queryName, result]: [string, any]) => (
                     <div key={queryName} className={`p-2 rounded text-xs ${result.success ? 'bg-green-50' : 'bg-red-50'}`}>
-                      <div className="font-medium">{queryName}</div>
-                      <div>Success: {result.success ? '✅' : '❌'}</div>
+                      <div className="font-medium flex items-center gap-1">
+                        {getStatusIcon(result.success)}
+                        {queryName}
+                      </div>
                       <div>Rows: {result.dataLength}</div>
                       {result.error && <div className="text-red-600">Error: {result.error}</div>}
                     </div>
@@ -240,7 +242,7 @@ export const DebugPanel: React.FC<DebugPanelProps> = ({ onDataFetched }) => {
               <div>
                 <h4 className="font-medium text-gray-900 mb-2">Raw Data Preview</h4>
                 <div className="bg-gray-50 p-2 rounded text-xs max-h-32 overflow-y-auto">
-                  <pre>{JSON.stringify(debugInfo.rawData, null, 2)}</pre>
+                  <pre>{JSON.stringify(debugInfo.rawData.slice(0, 2), null, 2)}</pre>
                 </div>
               </div>
             )}
@@ -266,6 +268,7 @@ export const DebugPanel: React.FC<DebugPanelProps> = ({ onDataFetched }) => {
                 <div>3. Verify table name is exactly "Curatit" (case-sensitive)</div>
                 <div>4. Check RLS policies in Supabase dashboard</div>
                 <div>5. Verify your anon key has read permissions</div>
+                <div>6. Make sure your Supabase project is not paused</div>
               </div>
             </div>
           </div>
