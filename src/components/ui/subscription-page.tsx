@@ -1,9 +1,60 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { OptimizedImage } from './optimized-image';
+import { supabase } from '@/lib/supabase';
 
 const SubscriptionPage = () => {
   const [email, setEmail] = useState('');
+  const [supabaseImages, setSupabaseImages] = useState<string[]>([]);
+  const [isLoadingImages, setIsLoadingImages] = useState(true);
+
+  // Fetch images from Supabase
+  useEffect(() => {
+    const fetchImages = async () => {
+      try {
+        setIsLoadingImages(true);
+        
+        // Fetch images from Supabase, prioritizing those with valid brand_post URLs
+        const { data, error } = await supabase
+          .from('Curatit')
+          .select('brand_post, brand_name')
+          .not('brand_post', 'is', null)
+          .neq('brand_post', '')
+          .order('created_at', { ascending: false })
+          .limit(10); // Get more than we need in case some fail to load
+
+        if (error) {
+          console.error('Error fetching images from Supabase:', error);
+          // Fall back to default images if Supabase fails
+          setSupabaseImages([]);
+        } else if (data && data.length > 0) {
+          // Filter out any invalid URLs and extract just the image URLs
+          const validImages = data
+            .filter(item => item.brand_post && item.brand_post.trim() !== '')
+            .map(item => item.brand_post.trim())
+            .filter(url => {
+              // Basic URL validation
+              try {
+                new URL(url);
+                return true;
+              } catch {
+                return false;
+              }
+            });
+
+          console.log('Fetched images from Supabase:', validImages);
+          setSupabaseImages(validImages);
+        }
+      } catch (err) {
+        console.error('Error in fetchImages:', err);
+        setSupabaseImages([]);
+      } finally {
+        setIsLoadingImages(false);
+      }
+    };
+
+    fetchImages();
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -11,9 +62,10 @@ const SubscriptionPage = () => {
     setEmail('');
   };
 
-  // Memoize image data to prevent re-renders
+  // Memoize image data with Supabase images as priority
   const imageData = useMemo(() => {
-    const baseImages = [
+    // Fallback images in case Supabase doesn't have enough images
+    const fallbackImages = [
       'https://images.pexels.com/photos/18111088/pexels-photo-18111088.jpeg',
       'https://images.pexels.com/photos/18111089/pexels-photo-18111089.jpeg',
       'https://images.pexels.com/photos/18111090/pexels-photo-18111090.jpeg',
@@ -23,12 +75,15 @@ const SubscriptionPage = () => {
       'https://images.pexels.com/photos/18111094/pexels-photo-18111094.jpeg',
     ];
 
+    // Combine Supabase images with fallbacks, prioritizing Supabase images
+    const combinedImages = [...supabaseImages, ...fallbackImages];
+
     return {
-      mobile: baseImages.slice(0, 3),
-      tablet: baseImages.slice(0, 3),
-      desktop: baseImages // Now includes 7 images
+      mobile: combinedImages.slice(0, 3),
+      tablet: combinedImages.slice(0, 3),
+      desktop: combinedImages.slice(0, 7) // Use 7 images for desktop
     };
-  }, []);
+  }, [supabaseImages]);
 
   return (
     <div className="bg-white flex flex-col justify-between">
@@ -80,9 +135,16 @@ const SubscriptionPage = () => {
             </button>
           </div>
         </motion.form>
+
+        {/* Loading indicator for images */}
+        {isLoadingImages && (
+          <div className="text-sm text-gray-500 mb-4">
+            Loading your curated content...
+          </div>
+        )}
       </div>
 
-      {/* Optimized Image Stack Group */}
+      {/* Optimized Image Stack Group with Supabase Images */}
       <div className="relative w-full min-h-[20rem] sm:min-h-[22rem] md:min-h-[24rem] overflow-hidden flex justify-center items-end">
         {/* Mobile Stack (3 images) */}
         <div className="block sm:hidden">
@@ -97,13 +159,13 @@ const SubscriptionPage = () => {
             
             return (
               <div
-                key={`mobile-${index}`}
+                key={`mobile-${index}-${imageUrl}`}
                 className={`absolute bottom-0 ${heights[index]} ${zIndexes[index]} ${positions[index]} w-[200px] rounded-t-xl overflow-hidden shadow-lg transform-gpu`}
                 style={{ willChange: 'transform' }}
               >
                 <OptimizedImage
                   src={imageUrl}
-                  alt={`Website inspiration ${index + 1}`}
+                  alt={`Curated brand inspiration ${index + 1}`}
                   width={200}
                   height={index === 1 ? 192 : 160}
                   quality={75}
@@ -128,13 +190,13 @@ const SubscriptionPage = () => {
             
             return (
               <div
-                key={`tablet-${index}`}
+                key={`tablet-${index}-${imageUrl}`}
                 className={`absolute bottom-0 ${heights[index]} ${zIndexes[index]} ${positions[index]} w-[280px] rounded-t-xl overflow-hidden shadow-lg transform-gpu`}
                 style={{ willChange: 'transform' }}
               >
                 <OptimizedImage
                   src={imageUrl}
-                  alt={`Website inspiration ${index + 1}`}
+                  alt={`Curated brand inspiration ${index + 1}`}
                   width={280}
                   height={index === 1 ? 224 : 192}
                   quality={75}
@@ -166,13 +228,13 @@ const SubscriptionPage = () => {
             
             return (
               <div
-                key={`desktop-${index}`}
+                key={`desktop-${index}-${imageUrl}`}
                 className={`absolute bottom-0 ${heights[index]} ${zIndexes[index]} ${positions[index]} w-[270px] rounded-t-xl overflow-hidden shadow-lg transform-gpu`}
                 style={{ willChange: 'transform' }}
               >
                 <OptimizedImage
                   src={imageUrl}
-                  alt={`Website inspiration ${index + 1}`}
+                  alt={`Curated brand inspiration ${index + 1}`}
                   width={270}
                   height={heightValue}
                   quality={75}
@@ -183,6 +245,17 @@ const SubscriptionPage = () => {
             );
           })}
         </div>
+
+        {/* Overlay with brand info for the center image on desktop */}
+        {!isLoadingImages && supabaseImages.length > 0 && (
+          <div className="hidden md:block absolute bottom-4 left-1/2 transform -translate-x-1/2 z-40">
+            <div className="bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg">
+              <span className="text-sm font-medium text-gray-800">
+                Featuring real brands from our curated collection
+              </span>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
