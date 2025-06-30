@@ -14,11 +14,13 @@ function App() {
   const scrollSmootherRef = useRef<any>(null);
 
   useEffect(() => {
-    // Initialize ScrollSmoother with optimized settings for performance
+    // Initialize ScrollSmoother with proper settings
     scrollSmootherRef.current = ScrollSmoother.create({
-      smooth: 0.6, // Reduced for better performance
-      effects: true,
+      smooth: 1, // Full smoothing for better effect
+      effects: true, // Enable effects for lag
       normalizeScroll: true,
+      content: "#smooth-content", // Specify content element
+      wrapper: "#smooth-wrapper" // Specify wrapper element
     })
 
     // Preload critical resources
