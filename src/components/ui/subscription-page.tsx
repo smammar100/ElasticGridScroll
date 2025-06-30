@@ -138,6 +138,7 @@ const SubscriptionPage = () => {
       </div>
 
       <div className="relative w-full min-h-[20rem] sm:min-h-[22rem] md:min-h-[24rem] overflow-hidden flex justify-center items-end">
+        {/* Mobile Stack (3 images) */}
         <div className="block sm:hidden">
           {imageData.mobile.map((imageUrl, index) => {
             const heights = ['h-40', 'h-48', 'h-40'];
@@ -168,6 +169,7 @@ const SubscriptionPage = () => {
           })}
         </div>
 
+        {/* Tablet Stack (3 images) */}
         <div className="hidden sm:block md:hidden">
           {imageData.tablet.map((imageUrl, index) => {
             const heights = ['h-48', 'h-56', 'h-48'];
@@ -198,18 +200,19 @@ const SubscriptionPage = () => {
           })}
         </div>
 
-        <div className="hidden md:block relative w-[1000px] mx-auto">
+        {/* Desktop Stack (7 images) - Reverted to calc positioning */}
+        <div className="hidden md:block">
           {imageData.desktop.map((imageUrl, index) => {
             const heights = ['h-40', 'h-48', 'h-64', 'h-80', 'h-64', 'h-48', 'h-40'];
             const zIndexes = ['z-[5]', 'z-10', 'z-20', 'z-30', 'z-20', 'z-10', 'z-[5]'];
             const positions = [
-              'left-[27.5px]',    // Image 0
-              'left-[162.5px]',   // Image 1
-              'left-[297.5px]',   // Image 2
-              'left-[365px]',     // Image 3 (center)
-              'left-[432.5px]',   // Image 4
-              'left-[567.5px]',   // Image 5
-              'left-[702.5px]'    // Image 6
+              'left-[calc(50%-472.5px)]', // Far left
+              'left-[calc(50%-337.5px)]',
+              'left-[calc(50%-202.5px)]',
+              'left-[calc(50%-135px)]',   // Center
+              'left-[calc(50%-67.5px)]',
+              'left-[calc(50%+67.5px)]',
+              'left-[calc(50%+202.5px)]'  // Far right
             ];
             
             const heightMap = { 'h-40': 160, 'h-48': 192, 'h-64': 256, 'h-80': 320 };
