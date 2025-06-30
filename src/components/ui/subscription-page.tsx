@@ -198,7 +198,7 @@ const SubscriptionPage = () => {
           })}
         </div>
 
-        <div className="hidden md:block relative w-[945px] mx-auto">
+        <div className="hidden md:block relative w-[1100px] mx-auto">
           {imageData.desktop.map((imageUrl, index) => {
             const heights = ['h-40', 'h-48', 'h-64', 'h-80', 'h-64', 'h-48', 'h-40'];
             const zIndexes = ['z-[5]', 'z-10', 'z-20', 'z-30', 'z-20', 'z-10', 'z-[5]'];
