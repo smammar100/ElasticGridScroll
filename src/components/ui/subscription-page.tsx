@@ -137,7 +137,7 @@ const SubscriptionPage = () => {
         )}
       </div>
 
-      <div className="relative w-full min-h-[20rem] sm:min-h-[22rem] md:min-h-[24rem] overflow-hidden flex justify-center items-end">
+      <div className="relative w-full min-h-[20rem] sm:min-h-[22rem] md:min-h-[24rem] flex justify-center items-end">
         {/* Mobile Stack (3 images) */}
         <div className="block sm:hidden">
           {imageData.mobile.map((imageUrl, index) => {
